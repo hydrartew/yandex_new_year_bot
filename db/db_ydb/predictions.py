@@ -1,5 +1,5 @@
 import json
-import logging.config
+import logging
 from datetime import datetime
 
 import ydb
@@ -8,7 +8,6 @@ import ydb.iam
 from config_data import settings, credentials
 from schemas import RandomPrediction, DataUsedPredictions
 
-logging.config.fileConfig(settings.BASE_DIR + '/logging.ini')
 logger = logging.getLogger('db.ydb')
 
 full_path: str = '{}/ynyb/predictions/'.format(settings.YDB_DATABASE.removeprefix('/'))
