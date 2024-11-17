@@ -1,0 +1,8 @@
+/logs/
+/tests/
+.idea
+/drafts
+.env
+/config_data/authorized_key.json
+__pycache__
+draft.py
