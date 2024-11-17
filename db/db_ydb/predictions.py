@@ -43,6 +43,7 @@ def __create_table_used_predictions() -> None:
                         full_path, table_name_used_predictions
                     )
                 )
+                logger.info(f'Table {table_name_used_predictions} created successfully')
             except Exception as e:
                 logger.error(f'Error creating table {table_name_used_predictions}: {e}', exc_info=True)
 
