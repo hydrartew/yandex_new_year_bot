@@ -1,13 +1,17 @@
 import asyncio
-import logging
-import sys
 
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from config import settings
+from config_data import settings
 from handlers import dp
+
+import logging.config
+
+
+logging.config.fileConfig('logging.ini')
+logging.getLogger('db.ydb').propagate = False
 
 
 async def main() -> None:
@@ -16,5 +20,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     asyncio.run(main())
