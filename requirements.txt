@@ -6,3 +6,4 @@ pydantic==2.9.2
 iso8601==2.1.0
 cachetools==5.5.0
 redis==5.2.0
+tenacity==9.0.0
