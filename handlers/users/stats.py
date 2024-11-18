@@ -1,6 +1,8 @@
 from aiogram.filters import Command
 from aiogram.types import Message
 
+from db import db_redis
+
 from loader import dp
 
 
@@ -10,7 +12,7 @@ async def my_stats(message: Message) -> None:
     await message.reply(
         f'📊 Статистика @{message.from_user.username}\n\n'
         f'❄️ Снежный денек:\n'
-        f'- брошено снежков: A\n'
+        f'- брошено снежков: {await db_redis.get_snow_stats(message.from_user.id)}\n'
         f'- получено снежок: B\n\n'
         f'❄️🔫 Снежная дуэль:\n'
         f'- выиграно: C\n'
