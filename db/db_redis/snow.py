@@ -1,14 +1,10 @@
-# import logging
-import logging.config
+import logging
 import redis
 from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
 
-from config_data import settings
 from db.db_redis.connection import r
 
 
-logging.config.fileConfig(f'{settings.BASE_DIR}/logging.ini')
-logging.getLogger('db.redis').propagate = False
 logger = logging.getLogger('db.redis')
 
 
@@ -21,12 +17,12 @@ def redis_retry():
 
 
 @redis_retry()
-def snow_plus_one(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> None:
+async def snow_plus_one(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> None:
     key = '{}:{}'.format(prefix, tg_user_id)
 
     logger.info(f'/snow {key}')
     try:
-        r.incr(key)
+        await r.incr(key)
     except redis.ConnectionError as e:
         logger.error(f'Error connecting to Redis: {e}')
         raise
@@ -36,15 +32,17 @@ def snow_plus_one(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> None:
     except Exception as e:
         logger.critical(f"An unexpected error: {e}")
         raise
+    finally:
+        await r.aclose()
 
 
 @redis_retry()
-def get_snow_stats(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> int | None:
+async def get_snow_stats(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> int:
     key = '{}:{}'.format(prefix, tg_user_id)
 
     logger.info(f'/snow stats {key}')
     try:
-        value = r.get(key)
+        value = await r.get(key)
     except redis.ConnectionError as e:
         logger.error(f'Error connecting to Redis: {e}')
         raise
@@ -54,11 +52,10 @@ def get_snow_stats(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> int | No
     except Exception as e:
         logger.critical(f"An unexpected error: {e}")
         raise
+    finally:
+        await r.aclose()
 
     if value is None:
+        value = 0
         logger.warning(f'/snow stats value is None for {key}')
     return value
-
-
-snow_plus_one(123)
-print(get_snow_stats(1234))
