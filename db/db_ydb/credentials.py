@@ -1,8 +1,5 @@
 import json
-
-
 import ydb
-
 from config_data import settings
 
 import logging.config
