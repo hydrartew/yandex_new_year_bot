@@ -9,14 +9,17 @@ from handlers import dp
 
 import logging.config
 
+from middlewares import ThrottlingMiddleware
+
 
 async def main() -> None:
     logging.config.fileConfig('logging.ini')
     logging.getLogger('db.ydb').propagate = False
+    logging.getLogger('middleware').propagate = False
 
     bot = Bot(settings.TELEGRAM_BOT_TOKEN.get_secret_value(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
-    # dp.message.middleware(ThrottlingMiddleware(config.throttle_time_spin, config.throttle_time_other))
+    dp.message.middleware(ThrottlingMiddleware())
 
     try:
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
