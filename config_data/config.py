@@ -1,7 +1,5 @@
-import json
 from pathlib import Path
 
-import ydb
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -28,20 +26,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-credentials = ydb.iam.MetadataUrlCredentials()
-
-# TODO: переместить в db
-
-if settings.TEST_ENVIRONMENT:
-    with open(f"{settings.BASE_DIR}/config_data/authorized_key.json", "r+", encoding='utf-8') as f:
-        authorized_key = json.load(f)
-
-    iam_token = ydb.iam.ServiceAccountCredentials(
-        service_account_id=authorized_key['service_account_id'],
-        access_key_id=authorized_key['id'],
-        private_key=authorized_key['private_key']
-    ).token
-
-    credentials = ydb.credentials.AccessTokenCredentials(token=iam_token)
-#

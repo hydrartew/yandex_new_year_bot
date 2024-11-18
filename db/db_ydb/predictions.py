@@ -4,8 +4,8 @@ from datetime import datetime
 
 import ydb
 import ydb.iam
-
-from config_data import settings, credentials
+from db.db_ydb.credentials import credentials
+from config_data import settings
 from schemas import RandomPrediction, DataUsedPredictions
 
 logger = logging.getLogger('db.ydb')

@@ -1,1 +1,1 @@
-from .config import settings, credentials
+from .config import settings
