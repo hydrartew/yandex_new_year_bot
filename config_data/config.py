@@ -20,10 +20,18 @@ class Settings(BaseSettings):
 
     TEST_ENVIRONMENT: bool = False
 
+    REDIS_HOST: str
+    REDIS_PASSWORD: SecretStr
+    REDIS_PORT: int
+
+    path_ssl_ca_certs: str = f'{BASE_DIR}/.redis/YandexInternalRootCA.crt'
+
 
 settings = Settings()
 
 credentials = ydb.iam.MetadataUrlCredentials()
+
+# TODO: переместить в db
 
 if settings.TEST_ENVIRONMENT:
     with open(f"{settings.BASE_DIR}/config_data/authorized_key.json", "r+", encoding='utf-8') as f:
@@ -36,3 +44,4 @@ if settings.TEST_ENVIRONMENT:
     ).token
 
     credentials = ydb.credentials.AccessTokenCredentials(token=iam_token)
+#
