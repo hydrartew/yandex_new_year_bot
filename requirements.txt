@@ -4,3 +4,4 @@ aiogram==3.14.0
 ydb==3.18.8
 pydantic==2.9.2
 iso8601==2.1.0
+cachetools==5.5.0
