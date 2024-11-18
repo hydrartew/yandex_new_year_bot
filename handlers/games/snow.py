@@ -30,4 +30,4 @@ async def game_snow(message: Message) -> None:
     await message.answer(
         text=f'@{message.from_user.username} бросил(а) снежок ❄️ в @{message.reply_to_message.from_user.username}'
     )
-    await db_redis.snow_plus_one(message.from_user.id)
+    await db_redis.snow_plus_one(message.from_user.id, message.reply_to_message.from_user.id)

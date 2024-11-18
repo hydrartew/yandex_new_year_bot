@@ -1,4 +1,6 @@
 import logging
+from typing import Literal
+
 import redis
 from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
 
@@ -17,12 +19,14 @@ def redis_retry():
 
 
 @redis_retry()
-async def snow_plus_one(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> None:
-    key = '{}:{}'.format(prefix, tg_user_id)
+async def snow_plus_one(from_tg_user_id: int, to_tg_user_id: int, prefix: str = 'snow') -> None:
+    key_from = '{}:from:tg_user_id:{}'.format(prefix, from_tg_user_id)
+    key_to = '{}:to:tg_user_id:{}'.format(prefix, to_tg_user_id)
 
-    logger.info(f'/snow {key}')
+    logger.info(f'/snow {key_from} >> {key_to}')
     try:
-        await r.incr(key)
+        async with r.pipeline(transaction=True) as pipe:
+            await (pipe.incr(key_from).incr(key_to).execute())
     except redis.ConnectionError as e:
         logger.error(f'Error connecting to Redis: {e}')
         raise
@@ -32,17 +36,17 @@ async def snow_plus_one(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> Non
     except Exception as e:
         logger.critical(f"An unexpected error: {e}")
         raise
-    finally:
-        await r.aclose()
 
 
 @redis_retry()
-async def get_snow_stats(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> int:
-    key = '{}:{}'.format(prefix, tg_user_id)
+async def get_snow_stats(tg_user_id: int, prefix: str = 'snow') -> tuple[int, int]:
+    key_from = '{}:from:tg_user_id:{}'.format(prefix, tg_user_id)
+    key_to = '{}:to:tg_user_id:{}'.format(prefix, tg_user_id)
 
-    logger.info(f'/snow stats {key}')
+    logger.info(f'/snow stats {tg_user_id}')
     try:
-        value = await r.get(key)
+        async with r.pipeline(transaction=True) as pipe:
+            value_from, value_to = await (pipe.get(key_from).get(key_to).execute())
     except redis.ConnectionError as e:
         logger.error(f'Error connecting to Redis: {e}')
         raise
@@ -52,10 +56,13 @@ async def get_snow_stats(tg_user_id: int, prefix: str = 'tg_user_id:snow') -> in
     except Exception as e:
         logger.critical(f"An unexpected error: {e}")
         raise
-    finally:
-        await r.aclose()
 
-    if value is None:
-        value = 0
-        logger.warning(f'/snow stats value is None for {key}')
-    return value
+    if value_from is None:
+        value_from = 0
+        logger.warning(f'/snow stats value_from is None for {key_from}')
+
+    if value_to is None:
+        value_to = 0
+        logger.warning(f'/snow stats value_to is None for {key_to}')
+
+    return value_from, value_to
