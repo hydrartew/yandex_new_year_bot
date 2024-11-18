@@ -10,13 +10,18 @@ from handlers import dp
 import logging.config
 
 
-logging.config.fileConfig('logging.ini')
-logging.getLogger('db.ydb').propagate = False
-
-
 async def main() -> None:
-    bot = Bot(token=settings.TELEGRAM_BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-    await dp.start_polling(bot)
+    logging.config.fileConfig('logging.ini')
+    logging.getLogger('db.ydb').propagate = False
+
+    bot = Bot(settings.TELEGRAM_BOT_TOKEN.get_secret_value(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
+    # dp.message.middleware(ThrottlingMiddleware(config.throttle_time_spin, config.throttle_time_other))
+
+    try:
+        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+    finally:
+        await bot.session.close()
 
 
 if __name__ == "__main__":
