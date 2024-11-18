@@ -4,7 +4,7 @@ from datetime import datetime
 
 import ydb
 import ydb.iam
-from db.db_ydb.credentials import credentials
+from db.db_ydb.credentials import get_credentials
 from config_data import settings
 from schemas import RandomPrediction, DataUsedPredictions
 
@@ -14,6 +14,9 @@ full_path: str = '{}/ynyb/predictions/'.format(settings.YDB_DATABASE.removeprefi
 
 table_name_predictions = 'predictions'
 table_name_used_predictions = 'used_predictions'
+
+
+credentials = get_credentials()
 
 
 def __create_table_used_predictions() -> None:
