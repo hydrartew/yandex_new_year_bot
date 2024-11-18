@@ -2,22 +2,23 @@ import json
 from pathlib import Path
 
 import ydb
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     BASE_DIR: str = str(Path(__file__).parents[1])
-    model_config = SettingsConfigDict(env_file=f'{BASE_DIR}/.env')
+    model_config = SettingsConfigDict(env_file=f'{BASE_DIR}/.env', env_file_encoding='utf-8')
 
-    TRACKER_INTERNAL_TOKEN: str
-    TRACKER_AMAYAMMI_TOKEN: str
+    TRACKER_INTERNAL_TOKEN: SecretStr
+    TRACKER_AMAYAMMI_TOKEN: SecretStr
 
-    TELEGRAM_BOT_TOKEN: str
+    TELEGRAM_BOT_TOKEN: SecretStr
 
     YDB_DATABASE: str
     YDB_ENDPOINT: str
 
-    TEST_ENVIRONMENT: bool | None = False
+    TEST_ENVIRONMENT: bool = False
 
 
 settings = Settings()
