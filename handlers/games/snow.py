@@ -4,8 +4,10 @@ from db import db_redis
 
 from handlers import dp
 
+flags = {"throttling_key": "snow"}
 
-@dp.message(Command('snow'))
+
+@dp.message(Command('snow'), flags=flags)
 async def game_snow(message: Message) -> None:
     # если сообщение без reply
     if message.reply_to_message is None:
