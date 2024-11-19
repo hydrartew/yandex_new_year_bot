@@ -1,11 +1,9 @@
 import logging
-from typing import Literal
 
 import redis
 from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
 
-from db.db_redis.connection import r
-
+from db.db_redis.connection import create_redis_client
 
 logger = logging.getLogger('db.redis')
 
@@ -19,14 +17,18 @@ def redis_retry():
 
 
 @redis_retry()
-async def snow_plus_one(from_tg_user_id: int, to_tg_user_id: int, prefix: str = 'snow') -> None:
-    key_from = '{}:from:tg_user_id:{}'.format(prefix, from_tg_user_id)
-    key_to = '{}:to:tg_user_id:{}'.format(prefix, to_tg_user_id)
+async def snow_plus_one(from_tg_user_id: int, to_tg_user_id: int, pattern: str = 'tg_user_id:{}:snow') -> None:
+    key_from = pattern.format(from_tg_user_id)
+    key_to = pattern.format(to_tg_user_id)
 
     logger.info(f'/snow {key_from} >> {key_to}')
+
+    r = await create_redis_client()
     try:
-        async with r.pipeline(transaction=True) as pipe:
-            await (pipe.incr(key_from).incr(key_to).execute())
+        async with r.pipeline() as pipe:
+            await pipe.hincrby(key_from, 'throw')
+            await pipe.hincrby(key_to, 'get')
+            await pipe.execute()
     except redis.ConnectionError as e:
         logger.error(f'Error connecting to Redis: {e}')
         raise
@@ -39,14 +41,14 @@ async def snow_plus_one(from_tg_user_id: int, to_tg_user_id: int, prefix: str = 
 
 
 @redis_retry()
-async def get_snow_stats(tg_user_id: int, prefix: str = 'snow') -> tuple[int, int]:
-    key_from = '{}:from:tg_user_id:{}'.format(prefix, tg_user_id)
-    key_to = '{}:to:tg_user_id:{}'.format(prefix, tg_user_id)
+async def get_snow_stats(tg_user_id: int, pattern: str = 'tg_user_id:{}:snow') -> dict[str, int] | dict:
+    key = pattern.format(tg_user_id)
 
     logger.info(f'/snow stats {tg_user_id}')
+
+    r = await create_redis_client()
     try:
-        async with r.pipeline(transaction=True) as pipe:
-            value_from, value_to = await (pipe.get(key_from).get(key_to).execute())
+        dict_value = await r.hgetall(key)
     except redis.ConnectionError as e:
         logger.error(f'Error connecting to Redis: {e}')
         raise
@@ -57,12 +59,9 @@ async def get_snow_stats(tg_user_id: int, prefix: str = 'snow') -> tuple[int, in
         logger.critical(f"An unexpected error: {e}")
         raise
 
-    if value_from is None:
-        value_from = 0
-        logger.warning(f'/snow stats value_from is None for {key_from}')
+    if dict_value is None:
+        logger.warning(f'/snow stats value is None for {key}')
 
-    if value_to is None:
-        value_to = 0
-        logger.warning(f'/snow stats value_to is None for {key_to}')
+    # TODO: обернуть в pydantic
 
-    return value_from, value_to
+    return dict_value
