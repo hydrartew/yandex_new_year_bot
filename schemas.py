@@ -18,3 +18,8 @@ class DataUsedPredictions(BaseModel):
 class SnowRedisData(BaseModel):
     throw: int = 0
     get: int = 0
+
+
+class SnowmanHeightRedisData(BaseModel):
+    current: int = 0
+    maximum: int = 0
