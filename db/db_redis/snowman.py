@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 
@@ -56,7 +55,7 @@ async def update_snowman(tg_user_id: int, height_increased: int,
         raise
     finally:
         await r.aclose()
-    return SnowmanHeightRedisData.model_validate((json.loads(updated_data)))
+    return SnowmanRedisData.model_validate((json.loads(updated_data)))
 
 
 @redis_retry()
@@ -83,4 +82,4 @@ async def get_snowman(tg_user_id: int, pattern: str = 'tg_user_id:{}:snowman') -
     if dict_value is None:
         logger.warning(f'/snowman stats value is None for {key}')
 
-    return SnowmanHeightRedisData.model_validate(dict_value) if dict_value else SnowmanHeightRedisData()
+    return SnowmanRedisData.model_validate(dict_value) if dict_value else SnowmanRedisData()
