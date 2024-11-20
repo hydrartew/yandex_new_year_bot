@@ -4,6 +4,7 @@ import redis
 from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
 
 from db.db_redis.connection import create_redis_client
+from schemas import SnowRedisData
 
 logger = logging.getLogger('db.redis')
 
@@ -41,7 +42,7 @@ async def snow_plus_one(from_tg_user_id: int, to_tg_user_id: int, pattern: str =
 
 
 @redis_retry()
-async def get_snow_stats(tg_user_id: int, pattern: str = 'tg_user_id:{}:snow') -> dict[str, int] | dict:
+async def get_snow_stats(tg_user_id: int, pattern: str = 'tg_user_id:{}:snow') -> SnowRedisData:
     key = pattern.format(tg_user_id)
 
     logger.info(f'/snow stats {tg_user_id}')
@@ -62,6 +63,4 @@ async def get_snow_stats(tg_user_id: int, pattern: str = 'tg_user_id:{}:snow') -
     if dict_value is None:
         logger.warning(f'/snow stats value is None for {key}')
 
-    # TODO: обернуть в pydantic
-
-    return dict_value
+    return SnowRedisData.model_validate(dict_value) if dict_value else SnowRedisData()

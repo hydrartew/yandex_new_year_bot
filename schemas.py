@@ -13,3 +13,8 @@ class DataUsedPredictions(BaseModel):
     prediction_ids: list[int] = []
     usage_times: list[str] = []
     dttm_last_usage: datetime = datetime.now()
+
+
+class SnowRedisData(BaseModel):
+    throw: int = 0
+    get: int = 0
