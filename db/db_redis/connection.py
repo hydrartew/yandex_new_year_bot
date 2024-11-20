@@ -1,11 +1,7 @@
 import logging
-
 from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
-
 from config_data import settings
-
 import redis.asyncio as aioredis
-
 
 logger = logging.getLogger('db.redis')
 
@@ -25,5 +21,5 @@ def redis_retry():
     return retry(
         stop=stop_after_attempt(5),
         wait=wait_exponential(min=1, max=4),
-        before_sleep=before_sleep_log(logger, logging.INFO)
+        before_sleep=before_sleep_log(logger, logging.ERROR, exc_info=True)
     )
