@@ -11,13 +11,13 @@ logger = logging.getLogger('db.redis')
 
 
 @redis_retry()
-async def update_snowman(tg_user_id: int, height_increase: int,
+async def update_snowman(tg_user_id: int, height_increased: int,
                          pattern: str = 'tg_user_id:{}:snowman') -> SnowmanHeightRedisData:
     key = pattern.format(tg_user_id)
 
     lua_script = """
         local key = KEYS[1]
-        local height_increase = tonumber(ARGV[1])
+        local height_increased = tonumber(ARGV[1])
 
         local values = redis.call('HMGET', key, 'all_attempts', 'current', 'maximum')
 
@@ -27,10 +27,10 @@ async def update_snowman(tg_user_id: int, height_increase: int,
 
         all_attempts = all_attempts + 1
 
-        if height_increase < 0 then
+        if height_increased < 0 then
             current = 0
         else
-            current = current + height_increase
+            current = current + height_increased
             if current > maximum then
                 maximum = current
             end
@@ -44,7 +44,7 @@ async def update_snowman(tg_user_id: int, height_increase: int,
 
     r = await create_redis_client()
     try:
-        updated_data = await r.eval(lua_script, 1, key, str(height_increase))
+        updated_data = await r.eval(lua_script, 1, key, str(height_increased))
     except redis.ConnectionError as e:
         logger.error(f'Error connecting to Redis: {e}')
         raise
