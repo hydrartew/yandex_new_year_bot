@@ -16,7 +16,7 @@ async def up_snowman_height(tg_user_id: int, height_increase: int, pattern: str 
     lua_script = """
         local key = KEYS[1]
         local height_increase = tonumber(ARGV[1])
-        local value = redis.call('HGET', key)
+        local value = redis.call('GET', key)
         
         local data
         
@@ -31,7 +31,7 @@ async def up_snowman_height(tg_user_id: int, height_increase: int, pattern: str 
             end
         end
         
-        redis.call('HSET', key, cjson.encode(data))
+        redis.call('SET', key, cjson.encode(data))
         return cjson.encode(data)
     """
 
