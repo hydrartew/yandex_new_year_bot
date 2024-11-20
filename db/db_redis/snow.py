@@ -1,20 +1,11 @@
 import logging
 
 import redis
-from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
 
-from db.db_redis.connection import create_redis_client
+from db.db_redis.connection import create_redis_client, redis_retry
 from schemas import SnowRedisData
 
 logger = logging.getLogger('db.redis')
-
-
-def redis_retry():
-    return retry(
-        stop=stop_after_attempt(5),
-        wait=wait_exponential(min=1, max=4),
-        before_sleep=before_sleep_log(logger, logging.INFO)
-    )
 
 
 @redis_retry()
@@ -39,6 +30,8 @@ async def snow_plus_one(from_tg_user_id: int, to_tg_user_id: int, pattern: str =
     except Exception as e:
         logger.critical(f"An unexpected error: {e}")
         raise
+    finally:
+        await r.aclose()
 
 
 @redis_retry()
@@ -59,6 +52,8 @@ async def get_snow_stats(tg_user_id: int, pattern: str = 'tg_user_id:{}:snow') -
     except Exception as e:
         logger.critical(f"An unexpected error: {e}")
         raise
+    finally:
+        await r.aclose()
 
     if dict_value is None:
         logger.warning(f'/snow stats value is None for {key}')
