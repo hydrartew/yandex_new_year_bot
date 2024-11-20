@@ -1,13 +1,14 @@
 from aiogram.filters import Command
 from aiogram.types import Message
 from db import db_redis
+from filters import GroupChat
 
 from handlers import dp
 
 flags = {"throttling_key": "snow"}
 
 
-@dp.message(Command('snow'), flags=flags)
+@dp.message(Command('snow'), GroupChat(), flags=flags)
 async def game_snow(message: Message) -> None:
     # если сообщение без reply
     if message.reply_to_message is None:
