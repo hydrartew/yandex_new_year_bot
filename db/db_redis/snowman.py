@@ -5,14 +5,14 @@ import logging
 import redis
 
 from db.db_redis.connection import create_redis_client, redis_retry
-from schemas import SnowmanHeightRedisData
+from schemas import SnowmanRedisData
 
 logger = logging.getLogger('db.redis')
 
 
 @redis_retry()
 async def update_snowman(tg_user_id: int, height_increased: int,
-                         pattern: str = 'tg_user_id:{}:snowman') -> SnowmanHeightRedisData:
+                         pattern: str = 'tg_user_id:{}:snowman') -> SnowmanRedisData:
     key = pattern.format(tg_user_id)
 
     lua_script = """
@@ -60,7 +60,7 @@ async def update_snowman(tg_user_id: int, height_increased: int,
 
 
 @redis_retry()
-async def get_snowman(tg_user_id: int, pattern: str = 'tg_user_id:{}:snowman') -> SnowmanHeightRedisData:
+async def get_snowman(tg_user_id: int, pattern: str = 'tg_user_id:{}:snowman') -> SnowmanRedisData:
     key = pattern.format(tg_user_id)
 
     logger.info(f'/snowman stats {tg_user_id}')
