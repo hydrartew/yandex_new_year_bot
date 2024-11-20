@@ -2,10 +2,11 @@ from aiogram import F
 from aiogram.filters import Command
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
+from filters import GroupChat
 from handlers import dp
 
 
-@dp.message(Command('snow_duel'))
+@dp.message(Command('snow_duel'), GroupChat())
 async def game_snow_duel(message: Message) -> None:
     # если сообщение без reply
     if message.reply_to_message is None:
