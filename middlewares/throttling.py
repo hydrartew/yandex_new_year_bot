@@ -10,7 +10,7 @@ logger = logging.getLogger('middleware')
 
 
 class ThrottlingMiddleware(BaseMiddleware):
-    def __init__(self, throttle_time_prediction: int = 10, throttle_time_snow: int = 1):
+    def __init__(self, throttle_time_prediction: float = 10, throttle_time_snow: float = 1.5):
         self.caches = {
             'prediction': TTLCache(maxsize=10_000, ttl=throttle_time_prediction),
             'snow': TTLCache(maxsize=10_000, ttl=throttle_time_snow),
