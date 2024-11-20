@@ -2,10 +2,13 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from random import randint
+
+from db.db_redis import update_snowman
+from filters import GroupChat
 from handlers import dp
 
 
-@dp.message(Command('snowman'))
+@dp.message(Command('snowman'), GroupChat())
 async def game_snowman(message: Message) -> None:
     list_text = message.text.split()
     if len(list_text) != 2 or not list_text[1].isdigit() or int(list_text[1]) > 10 or int(list_text[1]) < 1:
@@ -23,11 +26,11 @@ async def game_snowman(message: Message) -> None:
     if snowman_fall.is_fall:
         await message.answer(text=text + f', и он упал 🫠 '
                                          f'(шанс падения: {snowman_fall.percentage_falling_chance})')
-        # TODO: Рост текущего снеговика = 0
+        await update_snowman(message.from_user.id, -1)
         return
 
-    # TODO: Получить текущий рост снеговика
-    await message.answer(text=text + f'\nТекущий рост: N см')
+    snowman = await update_snowman(message.from_user.id, height_increased)
+    await message.answer(text=text + f'\nТекущий рост: {snowman.current} см')
 
 
 class SnowmanFallingChances:
