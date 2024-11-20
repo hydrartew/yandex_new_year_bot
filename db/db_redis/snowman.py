@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 
@@ -17,11 +18,15 @@ async def update_snowman(tg_user_id: int, height_increase: int,
     lua_script = """
         local key = KEYS[1]
         local height_increase = tonumber(ARGV[1])
-        
-        local values = redis.call('HMGET', key, 'current', 'maximum')
-        local current = tonumber(values[1]) or 0
-        local maximum = tonumber(values[2]) or current
-    
+
+        local values = redis.call('HMGET', key, 'all_attempts', 'current', 'maximum')
+
+        local all_attempts = tonumber(values[1]) or 0
+        local current = tonumber(values[2]) or 0
+        local maximum = tonumber(values[3]) or current
+
+        all_attempts = all_attempts + 1
+
         if height_increase < 0 then
             current = 0
         else
@@ -30,9 +35,9 @@ async def update_snowman(tg_user_id: int, height_increase: int,
                 maximum = current
             end
         end
-        
-        redis.call('HMSET', key, 'current', current, 'maximum', maximum)
-        return cjson.encode({current = current, maximum = maximum})
+
+        redis.call('HMSET', key, 'all_attempts', all_attempts, 'current', current, 'maximum', maximum)
+        return cjson.encode({all_attempts = all_attempts, current = current, maximum = maximum})
     """
 
     logger.info(f'/snowman {key}')

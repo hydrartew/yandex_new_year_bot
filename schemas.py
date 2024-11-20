@@ -21,5 +21,6 @@ class SnowRedisData(BaseModel):
 
 
 class SnowmanHeightRedisData(BaseModel):
+    all_attempts: int = 0
     current: int = 0
     maximum: int = 0
