@@ -8,7 +8,7 @@ from loader import dp
 
 @dp.message(Command('stats', 'profile'))
 async def my_stats(message: Message) -> None:
-    # TODO: select stats from DB
+    # TODO: select stats from DB + для redis объединить запросы
 
     snow_stats = await db_redis.get_snow_stats(message.from_user.id)
     snowman_stats = await db_redis.get_snowman(message.from_user.id)
