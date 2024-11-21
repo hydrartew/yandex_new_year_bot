@@ -37,8 +37,8 @@ async def game_snow_duel_call(call: CallbackQuery):
         await call.answer('Ты уже участвуешь в дуэли!')
         return
 
-    await call.message.edit_text(
-        text=f'Снежная дуэль ❄️🔫\n@player1 VS @{call.from_user.username}',
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
-            text='Бросить снежок в оппонента', callback_data='throw_snowball')]])
-    )
+    # await call.message.edit_text(
+    #     text=f'Снежная дуэль ❄️🔫\n@player1 VS @{call.from_user.username}',
+    #     reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
+    #         text='Бросить снежок в оппонента', callback_data='throw_snowball')]])
+    # )
