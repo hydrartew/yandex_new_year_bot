@@ -10,16 +10,45 @@ from icecream import ic
 from db.db_redis import SnowDuelDBQueries
 from filters import GroupChat
 from handlers import dp
-from schemas import WhoMoves, SnowDuelRoom
+from keyboards.inline import ikb_throw
+from schemas import WhoMoves, SnowDuelRoom, TgUsernamesWhoThrowsAndWhoGets
 
 
-def hud(_data: SnowDuelRoom):
+def hud(_data: SnowDuelRoom, end_game: bool = False):
+
+    if end_game:
+
+        winner = f'{_data.owner.tg_username}'
+        if _data.opponent.points >= 2:
+            winner = f'{_data.opponent.tg_username}'
+
+        return (
+            '<blockquote>❄️🔫 Снежная дуэль (завершена)</blockquote>\n'
+            f'Расстояние: {_data.distance} шагов\n\n'
+            f'Раундов: {_data.current_round}\n\n'
+            f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
+            f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
+            f'🏆 @{winner} - побеждает'
+        )
+
     return (
         '<blockquote>❄️🔫 Снежная дуэль</blockquote>\n'
         f'Расстояние: {_data.distance} шагов\n\n'
         f'Раунд: {_data.current_round}\n\n'
         f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
         f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
+    )
+
+
+def tg_usernames_who_throws_and_who_gets(_data: SnowDuelRoom) -> TgUsernamesWhoThrowsAndWhoGets:
+    if _data.who_moves == WhoMoves.owner:
+        return TgUsernamesWhoThrowsAndWhoGets(
+            throw=_data.owner.tg_username,
+            get=_data.opponent.tg_username
+        )
+    return TgUsernamesWhoThrowsAndWhoGets(
+        throw=_data.opponent.tg_username,
+        get=_data.owner.tg_username
     )
 
 
@@ -71,7 +100,7 @@ async def game_snow_duel_call(call: CallbackQuery, state: FSMContext):
 
     if current_state == 'SnowDuelState:is_owner':
         await call.answer(
-            'Ты не можешь принять свой же вызов. Ждем оппонента...',
+            'Ты не можешь принять свой же вызов. Ждем оппонента...',  # TODO: исправить если 2 активных дуэли, в 1 я own
             show_alert=True,
             cache_time=20
         )
@@ -107,17 +136,11 @@ async def game_snow_duel_call(call: CallbackQuery, state: FSMContext):
         await call.answer('Ты уже участвуешь в этой дуэли', show_alert=True, cache_time=20)
         return
 
-    if _data.snow_duel_data.who_moves == WhoMoves.owner:
-        who_throw = _data.snow_duel_data.owner.tg_username
-        who_get = _data.snow_duel_data.opponent.tg_username
-    else:
-        who_throw = _data.snow_duel_data.opponent.tg_username
-        who_get = _data.snow_duel_data.owner.tg_username
+    who = tg_usernames_who_throws_and_who_gets(_data.snow_duel_data)
 
     await call.message.edit_text(
-        text=hud(_data.snow_duel_data) + f'🔛 @{who_throw} - бросает',
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
-            text=f'Бросить ❄️ в @{who_get}', callback_data='throw_snowball')]])
+        text=hud(_data.snow_duel_data) + f'🔛 @{who.throw} - бросает',
+        reply_markup=ikb_throw(who.get)
     )
 
 
@@ -139,7 +162,7 @@ async def game_snow_duel_throw(call: CallbackQuery):
         return
 
     if not _data.is_current_user_move:
-        await call.answer('Сейчас не твой бросок', show_alert=True, cache_time=10)
+        await call.answer('Сейчас не твой бросок', show_alert=True, cache_time=3)
         return
 
     if not _data.room_exists:
@@ -153,17 +176,15 @@ async def game_snow_duel_throw(call: CallbackQuery):
     await call.message.edit_text(hud(_data.snow_duel_data) + footer)
     await asyncio.sleep(3)
 
-    if _data.snow_duel_data.who_moves == WhoMoves.owner:
-        who_throw = _data.snow_duel_data.owner.tg_username
-        who_get = _data.snow_duel_data.opponent.tg_username
-    else:
-        who_throw = _data.snow_duel_data.opponent.tg_username
-        who_get = _data.snow_duel_data.owner.tg_username
+    if _data.snow_duel_data.game_status == 'finished':
+        await call.message.edit_text(hud(_data.snow_duel_data, end_game=True))
+        return
+
+    who = tg_usernames_who_throws_and_who_gets(_data.snow_duel_data)
 
     await call.message.edit_text(
-        text=hud(_data.snow_duel_data) + f'🔛 @{who_throw} - бросает',
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
-            text=f'Бросить ❄️ в @{who_get}', callback_data='throw_snowball')]])
+        text=hud(_data.snow_duel_data) + f'🔛 @{who.throw} - бросает',
+        reply_markup=ikb_throw(who.get)
     )
 
 
