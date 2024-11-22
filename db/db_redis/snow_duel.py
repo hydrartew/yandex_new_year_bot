@@ -134,6 +134,9 @@ class SnowDuelDBQueries:
                 return MakeMove(user_in_room=False)
 
             current_player.moves += 1
+            if current_player.moves % 2 == 0:
+                room_data.current_round += 1
+
             current_player.dttm_last_move = datetime.now()
 
             if is_hit:
@@ -141,8 +144,6 @@ class SnowDuelDBQueries:
 
             if current_player.points >= self.limit_points_to_win:
                 room_data.game_status = 'finished'
-            else:
-                room_data.current_round += 1
 
             room_data.who_moves = who_move_next
 
