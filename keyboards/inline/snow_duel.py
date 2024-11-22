@@ -1,12 +1,10 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-
-def ikb_throw(who_get: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
+ikb_throw = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=f'Бросить ❄️ в @{who_get}',
+                    text=f'Бросить снежок ❄️',
                     callback_data='throw_snowball'
                 )
             ]

@@ -5,7 +5,6 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
-from icecream import ic
 
 from db.db_redis import SnowDuelDBQueries
 from filters import GroupChat
@@ -59,20 +58,9 @@ class SnowDuelState(StatesGroup):
 
 @dp.message(Command('snow_duel'), GroupChat())
 async def game_snow_duel(message: Message, state: FSMContext) -> None:
-    # если сообщение без reply
-    if message.reply_to_message is None:
-        await message.reply(f'Для участия в снежной дуэли ❄️🔫 нужно выбрать оппонента, '
-                            f'отправь /snow_duel в ответ на сообщение другого человека')
-        return
 
-    # если reply на сообщение бота
-    if message.reply_to_message.from_user.is_bot:
-        await message.reply('Бот не может участвовать в снежной дуэли ❄️🔫, выбери человекоподобного оппонента')
-        return
-
-    # если reply на свое сообщение
-    if message.from_user.username == message.reply_to_message.from_user.username:
-        await message.answer('Ты не можешь вызвать на снежную дуэль ❄️🔫 самого себя, выбери оппонента')
+    if await state.get_state() is not None:
+        await message.reply('Ты уже участвуешь в дуэли, если хочешь отменить её, пропиши команду /cancel_snow_duel')
         return
 
     await state.set_state(SnowDuelState.is_owner)
@@ -96,19 +84,10 @@ async def game_snow_duel(message: Message, state: FSMContext) -> None:
 
 @dp.callback_query(F.data == 'start_snow_duel')
 async def game_snow_duel_call(call: CallbackQuery, state: FSMContext):
-    current_state = await state.get_state()
 
-    if current_state == 'SnowDuelState:is_owner':
+    if await state.get_state() is not None:
         await call.answer(
-            'Ты не можешь принять свой же вызов. Ждем оппонента...',  # TODO: исправить если 2 активных дуэли, в 1 я own
-            show_alert=True,
-            cache_time=20
-        )
-        return
-
-    if current_state == 'SnowDuelState:is_opponent':
-        await call.answer(
-            'У тебя есть незавершенная дуэль, если хочешь отменить её, напиши /cancel_snow_duel',
+            'Ты уже участвуешь в дуэли, если хочешь отменить её, напиши /cancel_snow_duel',
             show_alert=True,
             cache_time=3
         )
@@ -140,7 +119,7 @@ async def game_snow_duel_call(call: CallbackQuery, state: FSMContext):
 
     await call.message.edit_text(
         text=hud(_data.snow_duel_data) + f'🔛 @{who.throw} - бросает',
-        reply_markup=ikb_throw(who.get)
+        reply_markup=ikb_throw
     )
 
 
@@ -184,7 +163,7 @@ async def game_snow_duel_throw(call: CallbackQuery):
 
     await call.message.edit_text(
         text=hud(_data.snow_duel_data) + f'🔛 @{who.throw} - бросает',
-        reply_markup=ikb_throw(who.get)
+        reply_markup=ikb_throw
     )
 
 
