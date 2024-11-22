@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum, Enum
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class RandomPrediction(BaseModel):
@@ -30,9 +30,15 @@ class SnowmanRedisData(BaseModel):
 
 class SnowDuelUser(BaseModel):
     tg_user_id: int
+    tg_username: str
     points: int = 0
     moves: int = 0
     dttm_last_move: datetime | None = None
+
+    @field_validator('tg_username')
+    @classmethod
+    def validate_tg_username(cls, v: str) -> str:
+        return v.removeprefix('@')
 
 
 class WhoMoves(Enum):

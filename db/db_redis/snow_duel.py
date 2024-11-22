@@ -17,13 +17,19 @@ class SnowDuelDBQueries:
         self.hash_name = self.pattern.format(chat_id, message_id)
 
     @redis_retry()
-    async def create_room(self, owner_tg_user_id: int, distance: int, who_moves: WhoMoves) -> None:
+    async def create_room(self,
+                          owner_tg_user_id: int,
+                          owner_tg_tg_username: str,
+                          distance: int,
+                          who_moves: WhoMoves) -> None:
+
         logger.info(f'Creating a room {self.hash_name} with owner tg_user_id:{owner_tg_user_id} for snow_duel')
 
         value = SnowDuelRoom(
             game_status='created',
             owner=SnowDuelUser(
-                tg_user_id=owner_tg_user_id
+                tg_user_id=owner_tg_user_id,
+                tg_username=owner_tg_tg_username
             ),
             who_moves=who_moves,
             distance=distance,
@@ -46,7 +52,7 @@ class SnowDuelDBQueries:
             await r.aclose()
 
     @redis_retry()
-    async def add_opponent_to_room(self, opponent_tg_user_id: int) -> AddOpponentToRoom:
+    async def add_opponent_to_room(self, opponent_tg_user_id: int, opponent_tg_tg_username: str) -> AddOpponentToRoom:
         logger.info(f'Add opponent tg_user_id:{opponent_tg_user_id} to the room {self.hash_name} for snow_duel')
 
         r = await create_redis_client()
@@ -74,7 +80,10 @@ class SnowDuelDBQueries:
                 return AddOpponentToRoom(room_already_has_opponent=True)
 
             room_data.game_status = 'in_progress'
-            room_data.opponent = SnowDuelUser(tg_user_id=opponent_tg_user_id)
+            room_data.opponent = SnowDuelUser(
+                tg_user_id=opponent_tg_user_id,
+                tg_username=opponent_tg_tg_username
+            )
 
             await r.set(self.hash_name, room_data.model_dump_json())
 
