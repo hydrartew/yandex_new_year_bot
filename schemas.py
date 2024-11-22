@@ -61,3 +61,4 @@ class AddOpponentToRoom(BaseModel):
     room_exists: bool = True
     room_already_has_opponent: bool = False
     user_is_owner_already_in_room: bool = False
+    snow_duel_data: SnowDuelRoom | None = None

@@ -78,7 +78,7 @@ class SnowDuelDBQueries:
 
             await r.set(self.hash_name, room_data.model_dump_json())
 
-            return AddOpponentToRoom()
+            return AddOpponentToRoom(snow_duel_data=room_data)
 
         except redis.ConnectionError as e:
             logger.error(f'Error connecting to Redis: {e}')
