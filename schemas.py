@@ -55,3 +55,9 @@ class MakeMove(BaseModel):
     is_current_user_move: bool = True
     room_exists: bool = True
     snow_duel_data: SnowDuelRoom | None = None
+
+
+class AddOpponentToRoom(BaseModel):
+    room_exists: bool = True
+    room_already_has_opponent: bool = False
+    user_is_owner_already_in_room: bool = False
