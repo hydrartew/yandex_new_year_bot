@@ -68,3 +68,8 @@ class AddOpponentToRoom(BaseModel):
     room_already_has_opponent: bool = False
     user_is_owner_already_in_room: bool = False
     snow_duel_data: SnowDuelRoom | None = None
+
+
+class TgUsernamesWhoThrowsAndWhoGets(BaseModel):
+    throw: str
+    get: str
