@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -15,6 +17,7 @@ def hud(_data: SnowDuelRoom):
     return (
         '<blockquote>❄️🔫 Снежная дуэль</blockquote>\n'
         f'Расстояние: {_data.distance} шагов\n\n'
+        f'Раунд: {_data.current_round}\n\n'
         f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
         f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
     )
@@ -114,7 +117,7 @@ async def game_snow_duel_call(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text(
         text=hud(_data.snow_duel_data) + f'🔛 @{who_throw} - бросает',
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
-            text=f'Бросить снежок ❄️ в @{who_get}', callback_data='throw_snowball')]])
+            text=f'Бросить ❄️ в @{who_get}', callback_data='throw_snowball')]])
     )
 
 
@@ -142,6 +145,26 @@ async def game_snow_duel_throw(call: CallbackQuery):
     if not _data.room_exists:
         await call.answer('Дуэль уже состоялась или не существует', show_alert=True, cache_time=120)
         return
+
+    footer = f'🔛 @{call.from_user.username} - мимо 💨'
+    if is_hit:
+        footer = f'🔛 @{call.from_user.username} - попал(а) 🎯'
+
+    await call.message.edit_text(hud(_data.snow_duel_data) + footer)
+    await asyncio.sleep(3)
+
+    if _data.snow_duel_data.who_moves == WhoMoves.owner:
+        who_throw = _data.snow_duel_data.owner.tg_username
+        who_get = _data.snow_duel_data.opponent.tg_username
+    else:
+        who_throw = _data.snow_duel_data.opponent.tg_username
+        who_get = _data.snow_duel_data.owner.tg_username
+
+    await call.message.edit_text(
+        text=hud(_data.snow_duel_data) + f'🔛 @{who_throw} - бросает',
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
+            text=f'Бросить ❄️ в @{who_get}', callback_data='throw_snowball')]])
+    )
 
 
 @dp.message(Command("cancel_snow_duel"))
