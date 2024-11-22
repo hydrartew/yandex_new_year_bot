@@ -10,9 +10,11 @@ logger = logging.getLogger('db.redis')
 
 
 class SnowDuelDBQueries:
-    def __init__(self, chat_id: int, message_id: int, pattern: str = 'snow_duel:{}:{}:data'):
-        self.hash_name = pattern.format(chat_id, message_id)
+    def __init__(self, chat_id: int, message_id: int):
+        self.pattern = 'snow_duel:{}:{}:data'
         self.limit_points_to_win = 2
+
+        self.hash_name = self.pattern.format(chat_id, message_id)
 
     @redis_retry()
     async def create_room(self, owner_tg_user_id: int, distance: int, who_moves: WhoMoves) -> None:
