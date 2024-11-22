@@ -51,7 +51,7 @@ class SnowDuelRoom(BaseModel):
     owner: SnowDuelUser
     opponent: SnowDuelUser | None = None
     who_moves: WhoMoves | None = None
-    current_round: int = 0
+    current_round: int = 1
     distance: int
     dttm_created: datetime
 

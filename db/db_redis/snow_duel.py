@@ -141,6 +141,8 @@ class SnowDuelDBQueries:
 
             if current_player.points >= self.limit_points_to_win:
                 room_data.game_status = 'finished'
+            else:
+                room_data.current_round += 1
 
             room_data.who_moves = who_move_next
 
