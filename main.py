@@ -15,8 +15,9 @@ from middlewares import ThrottlingMiddleware
 async def main() -> None:
     logging.config.fileConfig('logging.ini')
     logging.getLogger('db.ydb').propagate = False
-    logging.getLogger('db.redis').propagate = False
     logging.getLogger('middleware').propagate = False
+    logging.getLogger('db.redis').propagate = False
+    logging.getLogger('handlers').propagate = False
 
     bot = Bot(settings.TELEGRAM_BOT_TOKEN.get_secret_value(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
