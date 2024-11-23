@@ -134,7 +134,7 @@ class SnowDuelDBQueries:
                 return MakeMove(user_in_room=False)
 
             current_player.moves += 1
-            if current_player.moves % 2 == 0:
+            if (room_data.owner.moves + room_data.opponent.moves) % 2 == 0:
                 room_data.current_round += 1
 
             current_player.dttm_last_move = datetime.now()
