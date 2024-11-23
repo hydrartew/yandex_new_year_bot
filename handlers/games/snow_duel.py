@@ -4,6 +4,7 @@ from aiogram import F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.storage.base import StorageKey
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
 from db.db_redis import SnowDuelDBQueries
@@ -52,8 +53,7 @@ def tg_usernames_who_throws_and_who_gets(_data: SnowDuelRoom) -> TgUsernamesWhoT
 
 
 class SnowDuelState(StatesGroup):
-    is_owner = State()
-    is_opponent = State()
+    in_game = State()
 
 
 @dp.message(Command('snow_duel'), GroupChat())
@@ -63,7 +63,7 @@ async def game_snow_duel(message: Message, state: FSMContext) -> None:
         await message.reply('Ты уже участвуешь в дуэли, если хочешь отменить её, пропиши команду /cancel_snow_duel')
         return
 
-    await state.set_state(SnowDuelState.is_owner)
+    await state.set_state(SnowDuelState.in_game)
 
     send_message = await message.answer(
         text=f'@{message.from_user.username} предлагает сразиться в снежной дуэли ❄️🔫',
@@ -93,7 +93,7 @@ async def game_snow_duel_call(call: CallbackQuery, state: FSMContext):
         )
         return
 
-    await state.set_state(SnowDuelState.is_opponent)
+    await state.set_state(SnowDuelState.in_game)
 
     _data = await SnowDuelDBQueries(
         chat_id=call.message.chat.id,
@@ -123,9 +123,8 @@ async def game_snow_duel_call(call: CallbackQuery, state: FSMContext):
     )
 
 
-@dp.callback_query(SnowDuelState.is_opponent)
-@dp.callback_query(F.data == 'throw_snowball', SnowDuelState.is_owner)
-async def game_snow_duel_throw(call: CallbackQuery):
+@dp.callback_query(F.data == 'throw_snowball', SnowDuelState.in_game)
+async def game_snow_duel_throw(call: CallbackQuery, state: FSMContext):
     is_hit = True  # TODO: добавить рандом конфиг
 
     _data = await SnowDuelDBQueries(
@@ -157,6 +156,22 @@ async def game_snow_duel_throw(call: CallbackQuery):
 
     if _data.snow_duel_data.game_status == 'finished':
         await call.message.edit_text(hud(_data.snow_duel_data, end_game=True))
+
+        if call.from_user.id == _data.snow_duel_data.owner.tg_user_id:
+            another_user_id = _data.snow_duel_data.opponent.tg_user_id
+        else:
+            another_user_id = _data.snow_duel_data.owner.tg_user_id
+
+        await state.clear()  # для call.from_user.id
+
+        state.key = StorageKey(
+            bot_id=state.key.bot_id,
+            chat_id=state.key.chat_id,
+            user_id=another_user_id,
+            thread_id=state.key.thread_id
+        )
+        await state.clear()  # для соперника
+
         return
 
     who = tg_usernames_who_throws_and_who_gets(_data.snow_duel_data)
@@ -167,13 +182,13 @@ async def game_snow_duel_throw(call: CallbackQuery):
     )
 
 
+# TODO: добавить state SnowDuelState.in_game и протестить
 @dp.message(Command("cancel_snow_duel"))
 @dp.message(F.text.casefold() == "cancel_snow_duel")
 async def cancel_handler(message: Message, state: FSMContext) -> None:
     current_state = await state.get_state()
     if current_state is None:
-        await message.reply('У тебя нет активных дуэлей')
         return
 
     await state.clear()
-    await message.answer("Cancelling state {}".format(current_state))
+    await message.reply("Дуэль отменена".format(current_state))
