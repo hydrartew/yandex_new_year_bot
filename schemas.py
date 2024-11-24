@@ -1,5 +1,5 @@
 from datetime import datetime
-from enum import StrEnum, Enum
+from enum import Enum
 from typing import Literal
 
 from pydantic import BaseModel, field_validator
@@ -31,6 +31,7 @@ class SnowmanRedisData(BaseModel):
 class SnowDuelUser(BaseModel):
     tg_user_id: int
     tg_username: str
+    hit_chance: float
     points: int = 0
     moves: int = 0
     dttm_last_move: datetime | None = None
