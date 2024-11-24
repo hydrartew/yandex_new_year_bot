@@ -5,7 +5,7 @@ from datetime import datetime
 import ydb
 import ydb.iam
 from db.db_ydb.credentials import get_credentials
-from config_data import settings
+from configs import settings
 from schemas import RandomPrediction, DataUsedPredictions
 
 logger = logging.getLogger('db.ydb')
@@ -178,7 +178,7 @@ async def get_prediction(tg_user_id: int) -> str:
             database=settings.YDB_DATABASE,
             credentials=credentials
     ) as driver:
-        await driver.wait(timeout=5, fail_fast=True)
+        await driver.wait(fail_fast=True)
 
         async with ydb.aio.QuerySessionPool(driver) as pool:
             used_predictions = await dbp.select_used_predictions(pool)

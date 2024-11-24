@@ -136,6 +136,7 @@ async def game_snow_duel_throw(call: CallbackQuery, state: FSMContext):
         logger.error(f'Failed to extract steps in {call.message.text}')
         steps_extracted = 30
 
+    # TODO: перенести в БД + запрашивать бафф для игрока при создании комнаты и записывать шансы игроков в БД
     is_hit = SnowDuelConfig().is_hit(int(steps_extracted))
 
     _data = await SnowDuelDBQueries(

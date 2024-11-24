@@ -4,7 +4,7 @@ from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from config_data import settings
+from configs import settings
 from handlers import dp
 
 import logging.config
@@ -13,7 +13,7 @@ from middlewares import ThrottlingMiddleware
 
 
 async def main() -> None:
-    logging.config.fileConfig('logging.ini')
+    logging.config.fileConfig('logging.ini', disable_existing_loggers=False)
     logging.getLogger('db.ydb').propagate = False
     logging.getLogger('middleware').propagate = False
     logging.getLogger('db.redis').propagate = False

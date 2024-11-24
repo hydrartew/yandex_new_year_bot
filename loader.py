@@ -2,7 +2,7 @@ from aiogram import Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 import redis.asyncio as aioredis
 
-from config_data import settings
+from configs import settings
 
 storage = RedisStorage(
     redis=aioredis.StrictRedis(

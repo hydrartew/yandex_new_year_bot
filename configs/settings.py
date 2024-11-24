@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: SecretStr
     REDIS_PORT: int
 
-    path_ssl_ca_certs: str = f'{BASE_DIR}/config_data/.redis/YandexInternalRootCA.crt'
+    path_ssl_ca_certs: str = f'{BASE_DIR}/configs/.redis/YandexInternalRootCA.crt'
 
 
 settings = Settings()

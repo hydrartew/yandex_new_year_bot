@@ -31,7 +31,7 @@ class SnowmanRedisData(BaseModel):
 class SnowDuelUser(BaseModel):
     tg_user_id: int
     tg_username: str
-    hit_chance: float
+    # hit_chance: float
     points: int = 0
     moves: int = 0
     dttm_last_move: datetime | None = None

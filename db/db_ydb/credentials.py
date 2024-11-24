@@ -1,6 +1,6 @@
 import json
 import ydb
-from config_data import settings
+from configs import settings
 
 import logging.config
 
@@ -10,7 +10,7 @@ logging.getLogger('db.ydb').propagate = False
 
 
 def get_credentials():
-    file_path = f"{settings.BASE_DIR}/config_data/authorized_key.json"
+    file_path = f"{settings.BASE_DIR}/configs/authorized_key.json"
 
     if settings.TEST_ENVIRONMENT:
         logger.info('Getting IAM token')
