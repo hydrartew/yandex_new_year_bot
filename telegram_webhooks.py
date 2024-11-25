@@ -1,10 +1,9 @@
 import requests
-
-from config import settings
+from configs import settings
 
 
 def send_message(chat_id: int | str, text: str, reply_to_message_id: int | None = None,
-                 bot_token: str = settings.TELEGRAM_BOT_TOKEN) -> dict:
+                 bot_token: str = settings.TELEGRAM_BOT_TOKEN.get_secret_value()) -> dict:
     return requests.post(
         url=f'https://api.telegram.org/bot{bot_token}/sendMessage',
         params={
@@ -19,4 +18,9 @@ def send_message(chat_id: int | str, text: str, reply_to_message_id: int | None 
     ).json()
 
 
-print(send_message(-1002137483542, '@hydrartew увеличил рост снеговичка ☃️ на 5см'))
+print(
+    send_message(
+        chat_id=-1002137483542,
+        text='test'
+    )
+)
