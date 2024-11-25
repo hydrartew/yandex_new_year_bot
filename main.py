@@ -13,7 +13,7 @@ from middlewares import ThrottlingMiddleware
 
 
 async def main() -> None:
-    logging.config.fileConfig('logging.ini', disable_existing_loggers=False)
+    logging.config.fileConfig('logging.ini')
     logging.getLogger('db.ydb').propagate = False
     logging.getLogger('middleware').propagate = False
     logging.getLogger('db.redis').propagate = False
