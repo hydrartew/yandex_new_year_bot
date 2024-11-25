@@ -10,6 +10,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.base import StorageKey
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
+from configs import snow_duel_config
 from db.db_redis import SnowDuelDBQueries
 from filters import GroupChat
 from handlers import dp
@@ -75,8 +76,6 @@ async def game_snow_duel(message: Message, state: FSMContext) -> None:
             text='Принять вызов', callback_data='start_snow_duel')]])
     )
 
-    snow_duel_config = SnowDuelConfig()
-
     await SnowDuelDBQueries(
         chat_id=message.chat.id,
         message_id=send_message.message_id
@@ -137,7 +136,7 @@ async def game_snow_duel_throw(call: CallbackQuery, state: FSMContext):
         steps_extracted = 30
 
     # TODO: перенести в БД + запрашивать бафф для игрока при создании комнаты и записывать шансы игроков в БД
-    is_hit = SnowDuelConfig().is_hit(int(steps_extracted))
+    is_hit = snow_duel_config.is_hit(int(steps_extracted))
 
     _data = await SnowDuelDBQueries(
         chat_id=call.message.chat.id,
@@ -204,70 +203,3 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
 
     await state.clear()
     await message.reply("Дуэль отменена".format(current_state))
-
-
-class SnowDuelConfig:
-    def __init__(self):
-        """Chance configuration for snow_duel"""
-        self.config = {  # TODO: вынести в отдельный json-файл
-            "distance": {
-                "bottom_bound": {
-                    "steps": 25,  # inclusive
-                    "hit_chance": "60%"
-                },
-                "upper_bound": {
-                    "steps": 45,  # inclusive
-                    "hit_chance": "40%"
-                }
-            },
-            "chance_first_move": {
-                "owner": "50%",
-                "opponent": "50%"
-            }
-        }
-
-    @property
-    def distance(self) -> int:
-        _config = self.config['distance']
-        return random.randint(_config['bottom_bound']['steps'], _config['upper_bound']['steps'])
-
-    def hit_chance(self, steps: int) -> float:
-        _config = self.config['distance']
-
-        upper_steps = _config['upper_bound']['steps']
-        bottom_steps = _config['bottom_bound']['steps']
-
-        if not (bottom_steps <= steps <= upper_steps):
-            raise ValueError(f"Steps must be between distance.bottom_bound.steps:{bottom_steps} "
-                             f"and distance.upper_bound.steps:{upper_steps}")
-
-        bottom_hit_chance = int(_config['bottom_bound']['hit_chance'].strip('%'))
-        upper_hit_chance = int(_config['upper_bound']['hit_chance'].strip('%'))
-
-        chance_1_step = (bottom_hit_chance - upper_hit_chance) / (upper_steps - bottom_steps)
-
-        current_step_hit_chance = bottom_hit_chance - ((steps - bottom_steps) * chance_1_step)
-
-        return round(current_step_hit_chance, 2)
-
-    def is_hit(self, steps: int) -> bool:
-        _hit_chance = self.hit_chance(steps)
-        return random.choices([
-            True,
-            False
-        ], weights=[
-            _hit_chance,
-            100-_hit_chance
-        ])[0]
-
-    @property
-    def who_moves_first(self) -> WhoMoves:
-        _config = self.config['chance_first_move']
-
-        return random.choices([
-            WhoMoves.owner,
-            WhoMoves.opponent
-        ], weights=[
-            int(_config['owner'].strip('%')),
-            int(_config['opponent'].strip('%'))
-        ])[0]
