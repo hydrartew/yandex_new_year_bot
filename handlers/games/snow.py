@@ -1,3 +1,5 @@
+import logging
+
 from aiogram.filters import Command
 from aiogram.types import Message
 
@@ -6,6 +8,8 @@ from db import db_redis
 from filters import GroupChat
 
 from handlers import dp
+
+logger = logging.getLogger('handlers')
 
 flags = {"throttling_key": "snow"}
 
@@ -31,6 +35,9 @@ async def game_snow(message: Message) -> None:
             text=f'@{message.from_user.username} бросил(а) снежок ❄️ в себя',
         )
         return
+
+    logger.info('/snow tg_user_id:{} reply to tg_user_id:{} in chat_id:{}'.format(
+        message.from_user.id, message.reply_to_message.from_user.id, message.chat.id))
 
     if secret_box.is_secret_box:
         number_snowballs = secret_box.number_snowballs

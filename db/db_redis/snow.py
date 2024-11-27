@@ -14,7 +14,11 @@ async def snow_increase(from_tg_user_id: int,
     key_from = pattern.format(from_tg_user_id)
     key_to = pattern.format(to_tg_user_id)
 
-    logger.info(f'/snow {key_from} >> {key_to}')
+    msg = f'{key_from} throw += {from_tg_user_id_amount}'
+    if to_tg_user_id is not None:
+        msg += f', {key_to} get += 1'
+
+    logger.info(msg)
 
     r = await create_redis_client()
     try:
