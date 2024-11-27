@@ -24,7 +24,7 @@ class SnowDuelDBQueries:
                           distance: int,
                           who_moves: WhoMoves) -> None:
 
-        logger.info(f'Creating a room {self.hash_name} with owner tg_user_id:{owner_tg_user_id} for snow_duel')
+        logger.info(f'tg_user_id:{owner_tg_user_id} creating a room {self.hash_name}')
 
         value = SnowDuelRoom(
             game_status='created',
@@ -40,14 +40,19 @@ class SnowDuelDBQueries:
         r = await create_redis_client()
         try:
             await r.set(self.hash_name, value.model_dump_json())
+            logger.info(f'The room {self.hash_name} was created successfully')
         except redis.ConnectionError as e:
-            logger.error(f'Error connecting to Redis: {e}')
+            logger.error('Error connecting to Redis while tg_user_id:{} creating a room {}: {}'.format(
+                owner_tg_user_id, self.hash_name, e
+            ))
             raise
         except redis.TimeoutError as e:
-            logger.error(f'Timeout when trying to connect to Redis: {e}')
+            logger.error('Timeout when trying to connect to Redis: {}'.format(e))
             raise
         except Exception as e:
-            logger.critical(f"An unexpected error: {e}")
+            logger.critical('An unexpected error while tg_user_id:{} creating a room {}: {}'.format(
+                owner_tg_user_id, self.hash_name, e
+            ))
             raise
         finally:
             await r.aclose()
@@ -88,6 +93,7 @@ class SnowDuelDBQueries:
 
             await r.set(self.hash_name, room_data.model_dump_json())
 
+            logger.info(f'Opponent tg_user_id:{opponent_tg_user_id} added to the room {self.hash_name} successfully')
             return AddOpponentToRoom(snow_duel_data=room_data)
 
         except redis.ConnectionError as e:
@@ -111,7 +117,7 @@ class SnowDuelDBQueries:
             room_data = await r.get(self.hash_name)
 
             if room_data is None:
-                logger.error(f'Room {self.hash_name} not found for snow_duel')
+                logger.error(f'Room {self.hash_name} not found for snow_duel for tg_user_id:{tg_user_id}')
                 return MakeMove(room_exists=False)
 
             room_data = SnowDuelRoom.model_validate_json(room_data)
@@ -126,6 +132,7 @@ class SnowDuelDBQueries:
                     current_player = room_data.owner
                     another_player, who_move_next = room_data.opponent, WhoMoves.opponent
                 else:
+                    logger.info(f'tg_user_id:{tg_user_id} is not current user move in the room {self.hash_name}')
                     return MakeMove(is_current_user_move=False)
 
             elif tg_user_id == room_data.opponent.tg_user_id:
@@ -133,9 +140,11 @@ class SnowDuelDBQueries:
                     current_player = room_data.opponent
                     another_player, who_move_next = room_data.owner, WhoMoves.owner
                 else:
+                    logger.info(f'tg_user_id:{tg_user_id} is not current user move in the room {self.hash_name}')
                     return MakeMove(is_current_user_move=False)
 
             else:
+                logger.info(f'tg_user_id:{tg_user_id} not in the room {self.hash_name}')
                 return MakeMove(user_in_room=False)
 
             current_player.moves += 1
@@ -152,10 +161,10 @@ class SnowDuelDBQueries:
                     await pipe.hincrby(self.user_data_pattern.format(current_player.tg_user_id), 'wins')
                     await pipe.hincrby(self.user_data_pattern.format(another_player.tg_user_id), 'losses')
 
-                    logger.info('tg_user_id:{} wins tg_user_id:{} in room {}'.format(
-                        current_player.tg_user_id, another_player.tg_user_id, self.hash_name))
-
                     await pipe.execute()
+
+                logger.info('tg_user_id:{} wins tg_user_id:{} in room {}'.format(
+                    current_player.tg_user_id, another_player.tg_user_id, self.hash_name))
 
                 return MakeMove(snow_duel_data=room_data)
 
@@ -165,6 +174,8 @@ class SnowDuelDBQueries:
             room_data.who_moves = who_move_next
 
             await r.set(self.hash_name, room_data.model_dump_json())
+
+            logger.info(f'tg_user_id:{tg_user_id} made a move in {self.hash_name} successfully')
 
             return MakeMove(snow_duel_data=room_data)
 
