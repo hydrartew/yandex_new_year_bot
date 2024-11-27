@@ -56,30 +56,3 @@ async def update_snowman(tg_user_id: int, height_increased: int,
     finally:
         await r.aclose()
     return SnowmanRedisData.model_validate((json.loads(updated_data)))
-
-
-@redis_retry()
-async def get_snowman(tg_user_id: int, pattern: str = 'tg_user_id:{}:snowman') -> SnowmanRedisData:
-    key = pattern.format(tg_user_id)
-
-    logger.info(f'/snowman stats {tg_user_id}')
-
-    r = await create_redis_client()
-    try:
-        dict_value = await r.hgetall(key)
-    except redis.ConnectionError as e:
-        logger.error(f'Error connecting to Redis: {e}')
-        raise
-    except redis.TimeoutError as e:
-        logger.error(f'Timeout when trying to connect to Redis: {e}')
-        raise
-    except Exception as e:
-        logger.critical(f"An unexpected error: {e}")
-        raise
-    finally:
-        await r.aclose()
-
-    if dict_value is None:
-        logger.warning(f'/snowman stats value is None for {key}')
-
-    return SnowmanRedisData.model_validate(dict_value) if dict_value else SnowmanRedisData()
