@@ -21,11 +21,15 @@ async def snow_increase(from_tg_user_id: int,
 
     r = await create_redis_client()
     try:
+
         async with r.pipeline() as pipe:
             await pipe.hincrby(key_from, 'throw', from_tg_user_id_amount)
+
             if to_tg_user_id is not None:
                 await pipe.hincrby(key_to, 'get')
+
             await pipe.execute()
+
     except redis.ConnectionError as e:
         logger.error(f'Error connecting to Redis: {e}')
         raise
