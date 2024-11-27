@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, computed_field
 
 
 class RandomPrediction(BaseModel):
@@ -26,6 +26,32 @@ class SnowmanRedisData(BaseModel):
     all_attempts: int = 0
     current: int = 0
     maximum: int = 0
+
+
+class SnowDuelUserStats(BaseModel):
+    wins: int = 0
+    losses: int = 0
+
+    @computed_field
+    @property
+    def amount(self) -> int:
+        return self.wins + self.losses
+
+    @computed_field
+    @property
+    def wins_percentage(self) -> str:
+        if self.amount == 0:
+            return '0%'
+        percentage = (self.wins / self.amount) * 100
+        return f"{percentage:.2f}%"
+
+    @computed_field
+    @property
+    def losses_percentage(self) -> str:
+        if self.amount == 0:
+            return '0%'
+        percentage = (self.losses / self.amount) * 100
+        return f"{percentage:.2f}%"
 
 
 class SnowDuelUser(BaseModel):
