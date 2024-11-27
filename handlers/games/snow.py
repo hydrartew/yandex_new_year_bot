@@ -38,12 +38,13 @@ async def game_snow(message: Message) -> None:
             text=f'@{message.from_user.username} получил(а) подарок 🎁, '
                  f'в котором {get_snow_phrase(number_snowballs)} ❄️'
         )
-        # TODO: db query += amount
+        await db_redis.snow_increase(message.from_user.id, from_tg_user_id_amount=number_snowballs)
+
     else:
         await message.answer(
             text=f'@{message.from_user.username} бросил(а) снежок ❄️ в @{message.reply_to_message.from_user.username}'
         )
-    await db_redis.snow_plus_one(message.from_user.id, message.reply_to_message.from_user.id)
+        await db_redis.snow_increase(message.from_user.id, to_tg_user_id=message.reply_to_message.from_user.id)
 
 
 def get_snow_phrase(c: int) -> str:

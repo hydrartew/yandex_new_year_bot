@@ -9,7 +9,11 @@ logger = logging.getLogger('db.redis')
 
 
 @redis_retry()
-async def snow_plus_one(from_tg_user_id: int, to_tg_user_id: int, pattern: str = 'tg_user_id:{}:snow') -> None:
+async def snow_increase(from_tg_user_id: int,
+                        *,
+                        to_tg_user_id: int = None,
+                        from_tg_user_id_amount: int = 1,
+                        pattern: str = 'tg_user_id:{}:snow') -> None:
     key_from = pattern.format(from_tg_user_id)
     key_to = pattern.format(to_tg_user_id)
 
@@ -18,8 +22,9 @@ async def snow_plus_one(from_tg_user_id: int, to_tg_user_id: int, pattern: str =
     r = await create_redis_client()
     try:
         async with r.pipeline() as pipe:
-            await pipe.hincrby(key_from, 'throw')
-            await pipe.hincrby(key_to, 'get')
+            await pipe.hincrby(key_from, 'throw', from_tg_user_id_amount)
+            if to_tg_user_id is not None:
+                await pipe.hincrby(key_to, 'get')
             await pipe.execute()
     except redis.ConnectionError as e:
         logger.error(f'Error connecting to Redis: {e}')

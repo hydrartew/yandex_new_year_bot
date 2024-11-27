@@ -5,7 +5,7 @@ class SecretBox:
     def __init__(self):
         """Конфигурация шанса выпадения сюрприз бокса для игры /snow"""
         self.config = {  # TODO: вынести в отдельный json-файл
-            "percentage_chance": "0.2%",  # 1/500
+            "percentage_chance": "50%",  # 1/500
             "number_snowballs": {
                 "from": 10,
                 "to": 100
