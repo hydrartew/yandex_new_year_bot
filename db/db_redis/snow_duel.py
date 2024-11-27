@@ -11,10 +11,11 @@ logger = logging.getLogger('db.redis')
 
 class SnowDuelDBQueries:
     def __init__(self, chat_id: int, message_id: int):
-        self.pattern = 'snow_duel:{}:{}:data'
-        self.limit_points_to_win = 2
+        self.game_data_pattern = 'snow_duel:{}:{}:data'
+        self.hash_name = self.game_data_pattern.format(chat_id, message_id)
 
-        self.hash_name = self.pattern.format(chat_id, message_id)
+        self.user_data_pattern = 'tg_user_id:{}:snow_duel'
+        self.limit_points_to_win = 2
 
     @redis_retry()
     async def create_room(self,
@@ -122,14 +123,18 @@ class SnowDuelDBQueries:
 
             if tg_user_id == room_data.owner.tg_user_id:
                 if room_data.who_moves == WhoMoves.owner:
-                    current_player, who_move_next = room_data.owner, WhoMoves.opponent
+                    current_player = room_data.owner
+                    another_player, who_move_next = room_data.opponent, WhoMoves.opponent
                 else:
                     return MakeMove(is_current_user_move=False)
+
             elif tg_user_id == room_data.opponent.tg_user_id:
                 if room_data.who_moves == WhoMoves.opponent:
-                    current_player, who_move_next = room_data.opponent, WhoMoves.owner
+                    current_player = room_data.opponent
+                    another_player, who_move_next = room_data.owner, WhoMoves.owner
                 else:
                     return MakeMove(is_current_user_move=False)
+
             else:
                 return MakeMove(user_in_room=False)
 
@@ -141,9 +146,21 @@ class SnowDuelDBQueries:
 
             if current_player.points >= self.limit_points_to_win:
                 room_data.game_status = 'finished'
-            else:
-                if (room_data.owner.moves + room_data.opponent.moves) % 2 == 0:
-                    room_data.current_round += 1
+
+                async with r.pipeline() as pipe:
+                    await pipe.set(self.hash_name, room_data.model_dump_json())
+                    await pipe.hincrby(self.user_data_pattern.format(current_player.tg_user_id), 'wins')
+                    await pipe.hincrby(self.user_data_pattern.format(another_player.tg_user_id), 'losses')
+
+                    logger.info('tg_user_id:{} wins tg_user_id:{} in room {}'.format(
+                        current_player.tg_user_id, another_player.tg_user_id, self.hash_name))
+
+                    await pipe.execute()
+
+                return MakeMove(snow_duel_data=room_data)
+
+            if (room_data.owner.moves + room_data.opponent.moves) % 2 == 0:
+                room_data.current_round += 1
 
             room_data.who_moves = who_move_next
 
