@@ -8,9 +8,6 @@ class Settings(BaseSettings):
     BASE_DIR: str = str(Path(__file__).parents[1])
     model_config = SettingsConfigDict(env_file=f'{BASE_DIR}/.env', env_file_encoding='utf-8')
 
-    TRACKER_INTERNAL_TOKEN: SecretStr
-    TRACKER_AMAYAMMI_TOKEN: SecretStr
-
     TELEGRAM_BOT_TOKEN: SecretStr
 
     YDB_DATABASE: str
