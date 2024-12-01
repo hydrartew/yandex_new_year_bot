@@ -47,13 +47,10 @@ class SnowDuelDBQueries:
             await r.set(self.hash_name, value.model_dump_json())
             logger.info(f'The room {self.hash_name} was created successfully')
 
-        except redis.ConnectionError as e:
+        except (redis.ConnectionError, redis.TimeoutError) as e:
             logger.error('Error connecting to Redis while tg_user_id:{} creating a room {}: {}'.format(
                 owner_tg_user_id, self.hash_name, e
             ))
-            raise
-        except redis.TimeoutError as e:
-            logger.error('Timeout when trying to connect to Redis: {}'.format(e))
             raise
         except Exception as e:
             logger.critical('An unexpected error while tg_user_id:{} creating a room {}: {}'.format(
@@ -109,14 +106,15 @@ class SnowDuelDBQueries:
             logger.info(f'Opponent tg_user_id:{opponent_tg_user_id} added to the room {self.hash_name} successfully')
             return AddOpponentToRoom(snow_duel_data=room_data)
 
-        except redis.ConnectionError as e:
-            logger.error(f'Error connecting to Redis: {e}')
-            raise
-        except redis.TimeoutError as e:
-            logger.error(f'Timeout when trying to connect to Redis: {e}')
+        except (redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error('Error connecting to Redis while tg_user_id:{} adding to room {}: {}'.format(
+                opponent_tg_user_id, self.hash_name, e
+            ))
             raise
         except Exception as e:
-            logger.critical(f"An unexpected error: {e}")
+            logger.critical('An unexpected error while tg_user_id:{} adding to room {}: {}'.format(
+                opponent_tg_user_id, self.hash_name, e
+            ))
             raise
         finally:
             await r.aclose()
@@ -193,14 +191,15 @@ class SnowDuelDBQueries:
 
             return MakeMove(snow_duel_data=room_data, is_hit=is_hit)
 
-        except redis.ConnectionError as e:
-            logger.error(f'Error connecting to Redis: {e}')
-            raise
-        except redis.TimeoutError as e:
-            logger.error(f'Timeout when trying to connect to Redis: {e}')
+        except (redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error('Error connecting to Redis while tg_user_id:{} make a move in the room {}: {}'.format(
+                tg_user_id, self.hash_name, e
+            ))
             raise
         except Exception as e:
-            logger.critical(f"An unexpected error: {e}")
+            logger.critical('An unexpected error while tg_user_id:{} make a move in the room {}: {}'.format(
+                tg_user_id, self.hash_name, e
+            ))
             raise
         finally:
             await r.aclose()
@@ -240,14 +239,15 @@ class SnowDuelDBQueries:
 
             return CancelGame(another_user_id=another_user_id, snow_duel_data=room_data)
 
-        except redis.ConnectionError as e:
-            logger.error(f'Error connecting to Redis: {e}')
-            raise
-        except redis.TimeoutError as e:
-            logger.error(f'Timeout when trying to connect to Redis: {e}')
+        except (redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error('Error connecting to Redis while tg_user_id:{} cancelling the game room {}: {}'.format(
+                initiator_tg_user_id, self.hash_name, e
+            ))
             raise
         except Exception as e:
-            logger.critical(f"An unexpected error: {e}")
+            logger.critical('An unexpected error while tg_user_id:{} cancelling the game room {}: {}'.format(
+                initiator_tg_user_id, self.hash_name, e
+            ))
             raise
         finally:
             await r.aclose()
