@@ -105,3 +105,4 @@ class TgUsernamesWhoThrowsAndWhoGets(BaseModel):
 
 class CancelGame(BaseModel):
     another_user_id: int | None = None
+    snow_duel_data: SnowDuelRoom

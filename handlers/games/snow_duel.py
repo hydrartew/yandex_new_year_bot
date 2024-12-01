@@ -12,13 +12,18 @@ from db.db_redis import SnowDuelDBQueries
 from filters import GroupChat
 from handlers import dp
 from keyboards.inline import ikb_throw
+from loader import bot
 from schemas import WhoMoves, SnowDuelRoom, TgUsernamesWhoThrowsAndWhoGets
 
 logger = logging.getLogger('handlers')
 
 
-def hud(_data: SnowDuelRoom, end_game: bool = False):
-    if end_game:
+def hud(_data: SnowDuelRoom,
+        finish_game: bool = False,
+        cancel_game: bool = False,
+        who_canceled_game: str | None = None) -> str:
+
+    if finish_game:
 
         winner = f'{_data.owner.tg_username}'
         if _data.opponent.points >= 2:
@@ -31,6 +36,21 @@ def hud(_data: SnowDuelRoom, end_game: bool = False):
             f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
             f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
             f'🏆 @{winner} - побеждает'
+        )
+
+    if cancel_game:
+        if _data.opponent is None:
+            return (
+                f'@{_data.owner.tg_username} предлагает сразиться в снежной дуэли ❄️🔫\n\n'
+                f'Дуэль отменена'
+            )
+        return (
+            '<blockquote>❄️🔫 Снежная дуэль (отменена)</blockquote>\n'
+            f'Расстояние: {_data.distance} шагов\n\n'
+            f'Раундов: {_data.current_round}\n\n'
+            f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
+            f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
+            f'❌ @{who_canceled_game} - отменяет'
         )
 
     return (
@@ -153,7 +173,7 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext):
     await asyncio.sleep(3)
 
     if _data.snow_duel_data.game_status == 'finished':
-        await call.message.edit_text(hud(_data.snow_duel_data, end_game=True))
+        await call.message.edit_text(hud(_data.snow_duel_data, finish_game=True))
 
         if call.from_user.id == _data.snow_duel_data.owner.tg_user_id:
             another_user_id = _data.snow_duel_data.opponent.tg_user_id
@@ -211,5 +231,13 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     )
     await state.clear()  # для соперника
 
-    # TODO: отредактировать сообщение game_room_message_id
+    await bot.edit_message_text(
+        hud(
+            _data.snow_duel_data,
+            cancel_game=True,
+            who_canceled_game=message.from_user.username
+        ),
+        chat_id=message.chat.id,
+        message_id=game_room_message_id
+    )
     await message.answer("Дуэль отменена", reply_to_message_id=game_room_message_id)

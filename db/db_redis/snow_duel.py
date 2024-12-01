@@ -238,7 +238,7 @@ class SnowDuelDBQueries:
 
             logger.info(f'tg_user_id:{initiator_tg_user_id} canceled the game room {self.hash_name} successfully')
 
-            return CancelGame(another_user_id=another_user_id)
+            return CancelGame(another_user_id=another_user_id, snow_duel_data=room_data)
 
         except redis.ConnectionError as e:
             logger.error(f'Error connecting to Redis: {e}')

@@ -1,4 +1,6 @@
-from aiogram import Dispatcher
+from aiogram import Dispatcher, Bot
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 import redis.asyncio as aioredis
 
@@ -15,4 +17,5 @@ storage = RedisStorage(
     )
 )
 
+bot = Bot(settings.TELEGRAM_BOT_TOKEN.get_secret_value(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=storage)
