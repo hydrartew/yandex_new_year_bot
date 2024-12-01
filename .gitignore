@@ -6,3 +6,4 @@
 /configs/authorized_key.json
 __pycache__
 draft.py
+bot.session
