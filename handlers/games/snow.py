@@ -37,7 +37,8 @@ async def game_snow(message: Message) -> None:
         return
 
     logger.info('/snow tg_user_id:{} reply to tg_user_id:{} in chat_id:{}'.format(
-        message.from_user.id, message.reply_to_message.from_user.id, message.chat.id))
+        message.from_user.id, message.reply_to_message.from_user.id, message.chat.id
+    ))
 
     if secret_box.is_secret_box:
         number_snowballs = secret_box.number_snowballs
@@ -49,7 +50,7 @@ async def game_snow(message: Message) -> None:
 
     else:
         await message.answer(
-            text=f'@{message.from_user.username} бросил(а) снежок ❄️ в @{message.reply_to_message.from_user.username}'
+            f'@{message.from_user.username} бросил(а) снежок ❄️ в @{message.reply_to_message.from_user.username}'
         )
         await db_redis.snow_increase(message.from_user.id, to_tg_user_id=message.reply_to_message.from_user.id)
 
