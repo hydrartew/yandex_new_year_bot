@@ -191,7 +191,7 @@ class SnowDuelDBQueries:
 
             logger.info(f'tg_user_id:{tg_user_id} made a move in {self.hash_name} successfully')
 
-            return MakeMove(snow_duel_data=room_data)
+            return MakeMove(snow_duel_data=room_data, is_hit=is_hit)
 
         except redis.ConnectionError as e:
             logger.error(f'Error connecting to Redis: {e}')
