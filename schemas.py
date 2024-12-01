@@ -57,7 +57,7 @@ class SnowDuelUserStats(BaseModel):
 class SnowDuelUser(BaseModel):
     tg_user_id: int
     tg_username: str
-    # hit_chance: float
+    hit_chance: float
     points: int = 0
     moves: int = 0
     dttm_last_move: datetime | None = None
@@ -88,6 +88,7 @@ class MakeMove(BaseModel):
     is_current_user_move: bool = True
     room_exists: bool = True
     snow_duel_data: SnowDuelRoom | None = None
+    is_hit: bool = False
 
 
 class AddOpponentToRoom(BaseModel):

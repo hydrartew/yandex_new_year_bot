@@ -20,21 +20,25 @@ class SnowDuelConfig:
             "chance_first_move": {
                 "owner": "50%",
                 "opponent": "50%"
+            },
+            "user_buff": {
+                "interval_of_games_played": 20,
+                "increase_hit_chance": "1%",
+                "max_increase_hit_chance": "15%"
             }
         }
 
-    @property
-    def distance(self) -> int:
+    def get_random_distance(self) -> int:
         _config = self.config['distance']
         return random.randint(_config['bottom_bound']['steps'], _config['upper_bound']['steps'])
 
-    def hit_chance(self, steps: int) -> float:
+    def hit_chance(self, distance: int) -> float:
         _config = self.config['distance']
 
         upper_steps = _config['upper_bound']['steps']
         bottom_steps = _config['bottom_bound']['steps']
 
-        if not (bottom_steps <= steps <= upper_steps):
+        if not (bottom_steps <= distance <= upper_steps):
             raise ValueError(f"Steps must be between distance.bottom_bound.steps:{bottom_steps} "
                              f"and distance.upper_bound.steps:{upper_steps}")
 
@@ -43,18 +47,18 @@ class SnowDuelConfig:
 
         chance_1_step = (bottom_hit_chance - upper_hit_chance) / (upper_steps - bottom_steps)
 
-        current_step_hit_chance = bottom_hit_chance - ((steps - bottom_steps) * chance_1_step)
+        current_step_hit_chance = bottom_hit_chance - ((distance - bottom_steps) * chance_1_step)
 
         return round(current_step_hit_chance, 2)
 
-    def is_hit(self, steps: int) -> bool:
-        _hit_chance = self.hit_chance(steps)
+    @staticmethod
+    def is_hit(hit_chance: float) -> bool:
         return random.choices([
             True,
             False
         ], weights=[
-            _hit_chance,
-            100-_hit_chance
+            hit_chance,
+            100-hit_chance
         ])[0]
 
     @property
@@ -68,6 +72,16 @@ class SnowDuelConfig:
             int(_config['owner'].strip('%')),
             int(_config['opponent'].strip('%'))
         ])[0]
+
+    def user_buff(self, games_played: int) -> float:
+        _config = self.config['user_buff']
+
+        buff = (games_played // _config['interval_of_games_played']) * float(_config['increase_hit_chance'].strip('%'))
+
+        max_increase_hit_chance = float(_config['max_increase_hit_chance'].strip('%'))
+        if buff > max_increase_hit_chance:
+            return max_increase_hit_chance
+        return buff
 
 
 snow_duel_config = SnowDuelConfig()

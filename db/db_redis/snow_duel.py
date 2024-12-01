@@ -3,8 +3,9 @@ from datetime import datetime
 
 import redis
 
+from configs import snow_duel_config
 from db.db_redis.connection import create_redis_client, redis_retry
-from schemas import SnowDuelRoom, SnowDuelUser, WhoMoves, MakeMove, AddOpponentToRoom
+from schemas import SnowDuelRoom, SnowDuelUser, WhoMoves, MakeMove, AddOpponentToRoom, SnowDuelUserStats
 
 logger = logging.getLogger('db.redis')
 
@@ -18,29 +19,34 @@ class SnowDuelDBQueries:
         self.limit_points_to_win = 2
 
     @redis_retry()
-    async def create_room(self,
-                          owner_tg_user_id: int,
-                          owner_tg_tg_username: str,
-                          distance: int,
-                          who_moves: WhoMoves) -> None:
+    async def create_room(self, owner_tg_user_id: int, owner_tg_tg_username: str) -> None:
 
         logger.info(f'tg_user_id:{owner_tg_user_id} creating a room {self.hash_name}')
+
+        distance = snow_duel_config.get_random_distance()
 
         value = SnowDuelRoom(
             game_status='created',
             owner=SnowDuelUser(
                 tg_user_id=owner_tg_user_id,
-                tg_username=owner_tg_tg_username
+                tg_username=owner_tg_tg_username,
+                hit_chance=snow_duel_config.hit_chance(distance)
             ),
-            who_moves=who_moves,
+            who_moves=snow_duel_config.who_moves_first,
             distance=distance,
             dttm_created=datetime.now()
         )
 
         r = await create_redis_client()
         try:
+            user_stats = SnowDuelUserStats.model_validate(
+                await r.hgetall(self.user_data_pattern.format(owner_tg_user_id))
+            )
+            value.owner.hit_chance += snow_duel_config.user_buff(user_stats.amount)
+
             await r.set(self.hash_name, value.model_dump_json())
             logger.info(f'The room {self.hash_name} was created successfully')
+
         except redis.ConnectionError as e:
             logger.error('Error connecting to Redis while tg_user_id:{} creating a room {}: {}'.format(
                 owner_tg_user_id, self.hash_name, e
@@ -86,9 +92,16 @@ class SnowDuelDBQueries:
                 return AddOpponentToRoom(room_already_has_opponent=True)
 
             room_data.game_status = 'in_progress'
+
+            user_stats = SnowDuelUserStats.model_validate(
+                await r.hgetall(self.user_data_pattern.format(opponent_tg_user_id))
+            )
+            hit_chance = snow_duel_config.hit_chance(room_data.distance) + snow_duel_config.user_buff(user_stats.amount)
+
             room_data.opponent = SnowDuelUser(
                 tg_user_id=opponent_tg_user_id,
-                tg_username=opponent_tg_tg_username
+                tg_username=opponent_tg_tg_username,
+                hit_chance=hit_chance
             )
 
             await r.set(self.hash_name, room_data.model_dump_json())
@@ -109,7 +122,7 @@ class SnowDuelDBQueries:
             await r.aclose()
 
     @redis_retry()
-    async def make_move(self, tg_user_id: int, is_hit: bool) -> MakeMove:
+    async def make_move(self, tg_user_id: int) -> MakeMove:
         logger.info(f'tg_user_id:{tg_user_id} make a move in {self.hash_name}')
 
         r = await create_redis_client()
@@ -150,6 +163,7 @@ class SnowDuelDBQueries:
             current_player.moves += 1
             current_player.dttm_last_move = datetime.now()
 
+            is_hit = snow_duel_config.is_hit(current_player.hit_chance)
             if is_hit:
                 current_player.points += 1
 
@@ -166,7 +180,7 @@ class SnowDuelDBQueries:
                 logger.info('tg_user_id:{} wins tg_user_id:{} in room {}'.format(
                     current_player.tg_user_id, another_player.tg_user_id, self.hash_name))
 
-                return MakeMove(snow_duel_data=room_data)
+                return MakeMove(snow_duel_data=room_data, is_hit=is_hit)
 
             if (room_data.owner.moves + room_data.opponent.moves) % 2 == 0:
                 room_data.current_round += 1
@@ -190,3 +204,33 @@ class SnowDuelDBQueries:
             raise
         finally:
             await r.aclose()
+
+    async def get_room(self) -> SnowDuelRoom | None:
+        logger.info(f'Getting room {self.hash_name}')
+
+        r = await create_redis_client()
+        try:
+            room_data = await r.get(self.hash_name)
+
+            if room_data is None:
+                logger.error(f'Room {self.hash_name} not found for snow_duel')
+                return
+            return SnowDuelRoom.model_validate_json(room_data)
+
+        except Exception as e:
+            logger.error(f"Error while getting room: {e}")
+        finally:
+            await r.aclose()
+
+
+async def main() -> None:
+    chat_id = 0
+    message_id = 0
+    ic(await SnowDuelDBQueries(chat_id=chat_id, message_id=message_id).get_room())
+
+
+if __name__ == "__main__":
+    import asyncio
+    from icecream import ic
+
+    asyncio.run(main())

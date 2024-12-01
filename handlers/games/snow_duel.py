@@ -1,7 +1,5 @@
 import asyncio
 import logging
-import random
-import re
 
 from aiogram import F
 from aiogram.filters import Command
@@ -10,13 +8,11 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.base import StorageKey
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
-from configs import snow_duel_config
 from db.db_redis import SnowDuelDBQueries
 from filters import GroupChat
 from handlers import dp
 from keyboards.inline import ikb_throw
 from schemas import WhoMoves, SnowDuelRoom, TgUsernamesWhoThrowsAndWhoGets
-
 
 logger = logging.getLogger('handlers')
 
@@ -63,7 +59,7 @@ class SnowDuelState(StatesGroup):
 
 
 @dp.message(Command('snow_duel'), GroupChat())
-async def game_snow_duel(message: Message, state: FSMContext) -> None:
+async def start_game(message: Message, state: FSMContext) -> None:
     if await state.get_state() is not None:
         await message.reply('Ты уже участвуешь в дуэли, если хочешь отменить её, пропиши команду /cancel_snow_duel')
         return
@@ -81,14 +77,12 @@ async def game_snow_duel(message: Message, state: FSMContext) -> None:
         message_id=send_message.message_id
     ).create_room(
         owner_tg_user_id=message.from_user.id,
-        owner_tg_tg_username=message.from_user.username,
-        distance=snow_duel_config.distance,
-        who_moves=snow_duel_config.who_moves_first
+        owner_tg_tg_username=message.from_user.username
     )
 
 
 @dp.callback_query(F.data == 'start_snow_duel')
-async def game_snow_duel_call(call: CallbackQuery, state: FSMContext):
+async def join_the_game(call: CallbackQuery, state: FSMContext):
     if await state.get_state() is not None:
         await call.answer(
             'Ты уже участвуешь в дуэли, если хочешь отменить её, напиши /cancel_snow_duel',
@@ -128,22 +122,13 @@ async def game_snow_duel_call(call: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(F.data == 'throw_snowball', SnowDuelState.in_game)
-async def game_snow_duel_throw(call: CallbackQuery, state: FSMContext):
-    steps_extracted = re.findall(r'\d+', call.message.text.split('\n')[1])[0]  # костыль
-
-    if not steps_extracted.isdigit():
-        logger.error(f'Failed to extract steps in {call.message.text}')
-        steps_extracted = 30
-
-    # TODO: перенести в БД + запрашивать бафф для игрока при создании комнаты и записывать шансы игроков в БД
-    is_hit = snow_duel_config.is_hit(int(steps_extracted))
+async def throw_snowball(call: CallbackQuery, state: FSMContext):
 
     _data = await SnowDuelDBQueries(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id
     ).make_move(
-        tg_user_id=call.from_user.id,
-        is_hit=is_hit
+        tg_user_id=call.from_user.id
     )
 
     if not _data.user_in_room:
@@ -159,7 +144,7 @@ async def game_snow_duel_throw(call: CallbackQuery, state: FSMContext):
         return
 
     footer = f'🔛 @{call.from_user.username} - мимо 💨'
-    if is_hit:
+    if _data.is_hit:
         footer = f'🔛 @{call.from_user.username} - попал(а) 🎯'
 
     await call.message.edit_text(hud(_data.snow_duel_data) + footer)
