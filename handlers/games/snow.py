@@ -11,10 +11,8 @@ from handlers import dp
 
 logger = logging.getLogger('handlers')
 
-flags = {"throttling_key": "snow"}
 
-
-@dp.message(Command('snow'), GroupChat(), flags=flags)
+@dp.message(Command('snow'), GroupChat(), flags={"throttling_key": "snow"})
 async def game_snow(message: Message) -> None:
     # если сообщение без reply
     if message.reply_to_message is None:
