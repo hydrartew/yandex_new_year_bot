@@ -20,6 +20,10 @@ class ThrottlingMiddleware(BaseMiddleware):
                 maxsize=10_000,
                 ttl=1.5
             ),
+            'snowman': TTLCache(
+                maxsize=10_000,
+                ttl=1.5
+            ),
             'stats': TTLCache(
                 maxsize=10_000,
                 ttl=30

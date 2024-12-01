@@ -7,7 +7,7 @@ from filters import GroupChat
 from handlers import dp
 
 
-@dp.message(Command('snowman'), GroupChat())
+@dp.message(Command('snowman'), GroupChat(), flags={"throttling_key": "snowman"})
 async def game_snowman(message: Message) -> None:
     list_text = message.text.split()
     if len(list_text) != 2 or not list_text[1].isdigit() or int(list_text[1]) > 10 or int(list_text[1]) < 1:
@@ -21,12 +21,13 @@ async def game_snowman(message: Message) -> None:
     height_increased = int(list_text[1])
     snowman_fall = SnowmanFallingChances(height_increased)
 
-    text = f'@{message.from_user.username} увеличил(а) рост снеговичка ☃️ на {height_increased} см'
-    if snowman_fall.is_fall:
-        await message.answer(text=text + f', и он упал 🫠 '
-                                         f'(шанс падения: {snowman_fall.percentage_falling_chance})')
-        await update_snowman(message.from_user.id, -1)
-        return
+    snowman_data = await update_snowman(message.from_user.id, height_increased)
 
-    snowman = await update_snowman(message.from_user.id, height_increased)
-    await message.answer(text=text + f'\nТекущий рост: {snowman.current} см')
+    text = f'@{message.from_user.username} увеличил(а) рост снеговичка ☃️ на {height_increased} см'
+
+    # если снеговик упал и НЕ первый ход
+    if snowman_fall.is_fall and (snowman_data.current - height_increased != 0):
+        await message.answer('{}, и он упал 🫠 (шанс падения: {})'.format(text, snowman_fall.percentage_falling_chance))
+        await update_snowman(message.from_user.id, -1)
+    else:
+        await message.answer(text='{}\nТекущий рост: {} см'.format(text, snowman_data.current))
