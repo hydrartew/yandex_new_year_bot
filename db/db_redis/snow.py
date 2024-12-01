@@ -14,11 +14,9 @@ async def snow_increase(from_tg_user_id: int,
     key_from = pattern.format(from_tg_user_id)
     key_to = pattern.format(to_tg_user_id)
 
-    msg = '{} throw += {}'.format(key_from, from_tg_user_id_amount)
+    log_msg = '{} throw += {}'.format(key_from, from_tg_user_id_amount)
     if to_tg_user_id is not None:
-        msg += ', {} get += 1'.format(key_to)
-
-    logger.info(msg)
+        log_msg += ', {} get += 1'.format(key_to)
 
     r = await create_redis_client()
     try:
@@ -32,13 +30,13 @@ async def snow_increase(from_tg_user_id: int,
             await pipe.execute()
 
     except (redis.ConnectionError, redis.TimeoutError) as e:
-        logger.error('Error connecting to Redis while {}: {}'.format(
-            msg, e
+        logger.error('Error connecting to Redis while key_from: {}'.format(
+            log_msg, e
         ))
         raise
     except Exception as e:
         logger.critical('An unexpected error while {}: {}'.format(
-            msg, e
+            log_msg, e
         ))
         raise
     finally:

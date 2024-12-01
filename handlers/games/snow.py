@@ -36,12 +36,21 @@ async def game_snow(message: Message) -> None:
         )
         return
 
-    logger.info('/snow tg_user_id:{} reply to tg_user_id:{} in chat_id:{}'.format(
-        message.from_user.id, message.reply_to_message.from_user.id, message.chat.id
+    logger.info('/snow tg_user_id:{} reply to tg_user_id:{} in chat_id:{}, message_id:{}, reply_to_message:{}'.format(
+        message.from_user.id,
+        message.reply_to_message.from_user.id,
+        message.chat.id,
+        message.message_id,
+        message.reply_to_message.message_id
     ))
 
     if secret_box.is_secret_box:
         number_snowballs = secret_box.number_snowballs
+
+        logger.info('/snow tg_user_id:{} gets secret_box with number_snowballs: {}'.format(
+            message.from_user.id, number_snowballs
+        ))
+
         await message.answer(
             text=f'@{message.from_user.username} получил(а) подарок 🎁, '
                  f'в котором {get_snow_phrase(number_snowballs)} ❄️'
