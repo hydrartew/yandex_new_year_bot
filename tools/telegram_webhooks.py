@@ -20,7 +20,7 @@ def send_message(chat_id: int | str, text: str, reply_to_message_id: int | None 
 
 print(
     send_message(
-        chat_id=-1001314975842,
-        text='@Kirill_GL aллёу'
+        chat_id=-100,
+        text='text'
     )
 )
