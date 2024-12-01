@@ -5,7 +5,7 @@ import redis
 
 from configs import snow_duel_config
 from db.db_redis.connection import create_redis_client, redis_retry
-from schemas import SnowDuelRoom, SnowDuelUser, WhoMoves, MakeMove, AddOpponentToRoom, SnowDuelUserStats
+from schemas import SnowDuelRoom, SnowDuelUser, WhoMoves, MakeMove, AddOpponentToRoom, SnowDuelUserStats, CancelGame
 
 logger = logging.getLogger('db.redis')
 
@@ -192,6 +192,53 @@ class SnowDuelDBQueries:
             logger.info(f'tg_user_id:{tg_user_id} made a move in {self.hash_name} successfully')
 
             return MakeMove(snow_duel_data=room_data)
+
+        except redis.ConnectionError as e:
+            logger.error(f'Error connecting to Redis: {e}')
+            raise
+        except redis.TimeoutError as e:
+            logger.error(f'Timeout when trying to connect to Redis: {e}')
+            raise
+        except Exception as e:
+            logger.critical(f"An unexpected error: {e}")
+            raise
+        finally:
+            await r.aclose()
+
+    @redis_retry()
+    async def cancel_game(self, initiator_tg_user_id: int) -> CancelGame | None:
+        logger.info(f'tg_user_id:{initiator_tg_user_id} cancels the game room {self.hash_name}')
+
+        r = await create_redis_client()
+        try:
+            room_data = await r.get(self.hash_name)
+
+            if room_data is None:
+                logger.error(f'Room {self.hash_name} not found for snow_duel for tg_user_id:{initiator_tg_user_id}')
+                return
+
+            room_data = SnowDuelRoom.model_validate_json(room_data)
+
+            if room_data.game_status not in ('created', 'in_progress'):
+                logger.warning(f'Can not cancel the game because '
+                               f'the room {self.hash_name} is in status "{room_data.game_status}"')
+                return
+
+            if initiator_tg_user_id == room_data.owner.tg_user_id:
+                another_user_id = room_data.opponent.tg_user_id if room_data.opponent else None
+            elif room_data.opponent and initiator_tg_user_id == room_data.opponent.tg_user_id:
+                another_user_id = room_data.owner.tg_user_id
+            else:
+                logger.warning(f'tg_user_id:{initiator_tg_user_id} not in the game room {self.hash_name}')
+                return
+
+            room_data.game_status = 'cancelled'
+
+            await r.set(self.hash_name, room_data.model_dump_json())
+
+            logger.info(f'tg_user_id:{initiator_tg_user_id} canceled the game room {self.hash_name} successfully')
+
+            return CancelGame(another_user_id=another_user_id)
 
         except redis.ConnectionError as e:
             logger.error(f'Error connecting to Redis: {e}')

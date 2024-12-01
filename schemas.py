@@ -101,3 +101,7 @@ class AddOpponentToRoom(BaseModel):
 class TgUsernamesWhoThrowsAndWhoGets(BaseModel):
     throw: str
     get: str
+
+
+class CancelGame(BaseModel):
+    another_user_id: int | None = None

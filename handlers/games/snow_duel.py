@@ -64,13 +64,14 @@ async def start_game(message: Message, state: FSMContext) -> None:
         await message.reply('Ты уже участвуешь в дуэли, если хочешь отменить её, пропиши команду /cancel_snow_duel')
         return
 
-    await state.set_state(SnowDuelState.in_game)
-
     send_message = await message.answer(
         text=f'@{message.from_user.username} предлагает сразиться в снежной дуэли ❄️🔫',
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
             text='Принять вызов', callback_data='start_snow_duel')]])
     )
+
+    await state.set_state(SnowDuelState.in_game)
+    await state.update_data(game_room_message_id=send_message.message_id)
 
     await SnowDuelDBQueries(
         chat_id=message.chat.id,
@@ -92,6 +93,7 @@ async def join_the_game(call: CallbackQuery, state: FSMContext):
         return
 
     await state.set_state(SnowDuelState.in_game)
+    await state.update_data(game_room_message_id=call.message.message_id)
 
     _data = await SnowDuelDBQueries(
         chat_id=call.message.chat.id,
@@ -178,13 +180,36 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext):
     )
 
 
-# TODO: добавить state SnowDuelState.in_game и протестить
 @dp.message(Command("cancel_snow_duel"))
 @dp.message(F.text.casefold() == "cancel_snow_duel")
 async def cancel_handler(message: Message, state: FSMContext) -> None:
-    current_state = await state.get_state()
-    if current_state is None:
+    if await state.get_state() is None:
         return
 
-    await state.clear()
-    await message.reply("Дуэль отменена".format(current_state))
+    state_data = await state.get_data()
+    game_room_message_id = state_data.get('game_room_message_id')
+
+    _data = await SnowDuelDBQueries(
+        chat_id=message.chat.id,
+        message_id=game_room_message_id
+    ).cancel_game(
+        initiator_tg_user_id=message.from_user.id
+    )
+
+    if _data is None:
+        await state.clear()
+        await message.reply("Дуэль отменена")
+        return
+
+    await state.clear()  # для initiator_tg_user_id, т.е. для message.from_user.id
+
+    state.key = StorageKey(
+        bot_id=state.key.bot_id,
+        chat_id=state.key.chat_id,
+        user_id=_data.another_user_id,
+        thread_id=state.key.thread_id
+    )
+    await state.clear()  # для соперника
+
+    # TODO: отредактировать сообщение game_room_message_id
+    await message.answer("Дуэль отменена", reply_to_message_id=game_room_message_id)
