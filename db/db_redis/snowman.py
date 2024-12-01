@@ -44,7 +44,7 @@ async def update_snowman(tg_user_id: int, height_increased: int,
     r = await create_redis_client()
     try:
         updated_data = await r.eval(lua_script, 1, key, str(height_increased))
-        return SnowmanRedisData.model_validate((json.loads(updated_data)))
+        return SnowmanRedisData.model_validate_json(updated_data)
     except (redis.ConnectionError, redis.TimeoutError) as e:
         logger.error('Error connecting to Redis while tg_user_id:{} updates the snowman: {}'.format(
             tg_user_id, e
