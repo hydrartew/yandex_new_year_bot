@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=f'{BASE_DIR}/.env', env_file_encoding='utf-8')
 
     TELEGRAM_BOT_TOKEN: SecretStr
+    TELEGRAM_API_ID: int
+    TELEGRAM_API_HASH: str
 
     YDB_DATABASE: str
     YDB_ENDPOINT: str
