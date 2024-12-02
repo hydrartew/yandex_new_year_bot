@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Literal
 
+from aiogram.enums import ChatMemberStatus
 from pydantic import BaseModel, field_validator, computed_field
 
 
@@ -114,5 +115,5 @@ class ChatMemberUpdatedData(BaseModel):
     title: str | None
     from_user_id: int
     from_user_username: str
-    action: Literal['join', 'block']
+    chat_member_status: ChatMemberStatus
     utc_dttm_action: datetime
