@@ -13,11 +13,12 @@ async def main() -> None:
     logging.getLogger('middleware').propagate = False
     logging.getLogger('db.redis').propagate = False
     logging.getLogger('handlers').propagate = False
+    logging.getLogger('aiogram.dispatcher').propagate = False
 
     dp.message.middleware(ThrottlingMiddleware())
 
     try:
-        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types(), skip_updates=False)
     finally:
         await bot.session.close()
 
