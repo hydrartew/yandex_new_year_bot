@@ -115,4 +115,4 @@ class ChatMemberUpdatedData(BaseModel):
     from_user_id: int
     from_user_username: str
     action: Literal['join', 'block']
-    dttm_action: datetime
+    utc_dttm_action: datetime
