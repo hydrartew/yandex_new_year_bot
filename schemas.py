@@ -106,3 +106,13 @@ class TgUsernamesWhoThrowsAndWhoGets(BaseModel):
 class CancelGame(BaseModel):
     another_user_id: int | None = None
     snow_duel_data: SnowDuelRoom
+
+
+class ChatMemberUpdatedData(BaseModel):
+    chat_id: int
+    type: str
+    title: str | None
+    from_user_id: int
+    from_user_username: str
+    action: Literal['join', 'block']
+    dttm_action: datetime
