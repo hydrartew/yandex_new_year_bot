@@ -36,7 +36,7 @@ async def create_table() -> None:
                         `title` Utf8,
                         `from_user_id` Uint64 NOT NULL,
                         `from_user_username` Utf8 NOT NULL,
-                        `action` Utf8 NOT NULL,
+                        `chat_member_status` Utf8 NOT NULL,
                         `utc_dttm_action` Timestamp NOT NULL,
                         PRIMARY KEY (`chat_id`)
                     )
@@ -50,7 +50,7 @@ async def create_table() -> None:
 
 
 async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
-    logger.info('Upsert table {} with data: {}'.format(table_name, repr(data)))
+    logger.info('Upsert table `{}` with data: {}'.format(table_name, repr(data)))
 
     async with ydb.aio.Driver(
         endpoint=settings.YDB_ENDPOINT,
@@ -70,11 +70,21 @@ async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
                     DECLARE $title AS Optional<Utf8>;
                     DECLARE $from_user_id AS Uint64;
                     DECLARE $from_user_username AS Utf8;
-                    DECLARE $action AS Utf8;
+                    DECLARE $chat_member_status AS Utf8;
                     DECLARE $utc_dttm_action AS Timestamp;
 
-                    UPSERT INTO `{}` (chat_id, type, title, from_user_id, from_user_username, action, utc_dttm_action)
-                    VALUES ($chat_id, $type, $title, $from_user_id, $from_user_username, $action, $utc_dttm_action);
+                    UPSERT INTO `{}` (
+                        chat_id, type, title, from_user_id, from_user_username, chat_member_status, utc_dttm_action
+                    )
+                    VALUES (
+                        $chat_id, 
+                        $type, 
+                        $title, 
+                        $from_user_id, 
+                        $from_user_username, 
+                        $chat_member_status, 
+                        $utc_dttm_action
+                    );
                     """.format(
                         full_path, table_name,
                     ),
@@ -84,13 +94,13 @@ async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
                         "$title": (data.title, ydb.OptionalType(ydb.PrimitiveType.Utf8)),
                         "$from_user_id": (data.from_user_id, ydb.PrimitiveType.Uint64),
                         "$from_user_username": (data.from_user_username, ydb.PrimitiveType.Utf8),
-                        "$action": (data.action, ydb.PrimitiveType.Utf8),
+                        "$chat_member_status": (data.chat_member_status, ydb.PrimitiveType.Utf8),
                         "$utc_dttm_action": (data.utc_dttm_action, ydb.PrimitiveType.Timestamp)
                     }
                 )
-                logger.info('Table {} updated successfully with data: {}'.format(table_name, repr(data)))
+                logger.info('Table `{}` updated successfully for chat_id:{}'.format(table_name, data.chat_id))
             except Exception as e:
-                logger.error('Error while upsert table {} with data {}: {}'.format(
+                logger.error('Error while upsert table `{}` with data {}: {}'.format(
                     table_name, repr(data), e), exc_info=True)
 
 

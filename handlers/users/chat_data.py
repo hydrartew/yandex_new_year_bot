@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 
-from aiogram.enums import ChatMemberStatus
 from aiogram.filters import ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
 from aiogram.types import ChatMemberUpdated
 
@@ -12,6 +11,7 @@ from schemas import ChatMemberUpdatedData
 @dp.my_chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 @dp.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def update_chat_data(event: ChatMemberUpdated):
+    print(event.new_chat_member.status)
     await upsert_chat_data(
         ChatMemberUpdatedData(
             chat_id=event.chat.id,
@@ -19,7 +19,7 @@ async def update_chat_data(event: ChatMemberUpdated):
             title=event.chat.title,
             from_user_id=event.from_user.id,
             from_user_username=event.from_user.username,
-            action='join' if event.new_chat_member.status == ChatMemberStatus.MEMBER else 'block',
+            chat_member_status=event.new_chat_member.status,
             utc_dttm_action=datetime.now(timezone.utc)
         )
     )
