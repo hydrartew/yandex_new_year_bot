@@ -31,24 +31,31 @@ async def check_chat_exists(client, group_id) -> bool:
         return False
 
 
-async def get_chat_users(client, group_id):
+async def get_chat_users(client, group_id) -> list[TelegramUser]:
     if not await check_chat_exists(client, group_id):
         raise ValueError('Chat {} does not exist'.format(group_id))
+
+    data = []
     async for user in client.iter_participants(group_id):
-        telegram_user = TelegramUser(
-            id=user.id,
-            username=user.username,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            bot=user.bot,
-            deleted=user.deleted,
+        data.append(
+            TelegramUser(
+                id=user.id,
+                username=user.username,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                bot=user.bot,
+                deleted=user.deleted,
+            )
         )
-        ic(telegram_user)
+    return data
 
 
 async def main():
-    group_id = -1002015280712
-    await get_chat_users(bot, group_id)
+    group_id = 12345
+
+    chat_users = await get_chat_users(bot, group_id)
+    ic(chat_users)
+
 
 if __name__ == '__main__':
     with bot:
