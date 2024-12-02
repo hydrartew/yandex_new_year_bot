@@ -4,13 +4,14 @@ from configs import settings
 
 import logging.config
 
-logging.config.fileConfig('logging.ini')
+logging.config.fileConfig('{}/logging.ini'.format(settings.BASE_DIR))
 logger = logging.getLogger('db.ydb')
 logging.getLogger('db.ydb').propagate = False
+logging.getLogger('ydb').setLevel('WARNING')
 
 
 def get_credentials():
-    file_path = f"{settings.BASE_DIR}/configs/authorized_key.json"
+    file_path = '{}/configs/authorized_key.json'.format(settings.BASE_DIR)
 
     if settings.TEST_ENVIRONMENT:
         logger.info('Getting IAM token')
