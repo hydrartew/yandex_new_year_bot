@@ -1,4 +1,5 @@
 import asyncio
+
 from handlers import dp
 
 import logging.config
@@ -14,6 +15,7 @@ async def main() -> None:
     logging.getLogger('db.redis').propagate = False
     logging.getLogger('handlers').propagate = False
     logging.getLogger('aiogram.dispatcher').propagate = False
+    logging.getLogger('ydb').setLevel(logging.WARNING)
 
     dp.message.middleware(ThrottlingMiddleware())
 
