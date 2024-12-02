@@ -11,7 +11,6 @@ from schemas import ChatMemberUpdatedData
 @dp.my_chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 @dp.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def update_chat_data(event: ChatMemberUpdated):
-    print(event.new_chat_member.status)
     await upsert_chat_data(
         ChatMemberUpdatedData(
             chat_id=event.chat.id,
