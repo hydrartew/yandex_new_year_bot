@@ -4,8 +4,8 @@ from datetime import datetime
 
 import ydb
 import ydb.iam
-from db.db_ydb.credentials import get_credentials
 from configs import settings
+from db.db_ydb.credentials import credentials_manager
 from schemas import RandomPrediction, DataUsedPredictions
 
 logger = logging.getLogger('db.ydb')
@@ -16,9 +16,6 @@ table_name_predictions = 'predictions'
 table_name_used_predictions = 'used_predictions'
 
 
-credentials = get_credentials()
-
-
 def __create_table_used_predictions() -> None:
     global full_path, table_name_predictions, table_name_used_predictions
     logger.info(f'Creating table {table_name_used_predictions} if not exists')
@@ -26,7 +23,7 @@ def __create_table_used_predictions() -> None:
     with ydb.Driver(
             endpoint=settings.YDB_ENDPOINT,
             database=settings.YDB_DATABASE,
-            credentials=credentials
+            credentials=credentials_manager.get_credentials()
     ) as driver:
         driver.wait(timeout=5, fail_fast=True)
         with ydb.QuerySessionPool(driver) as _pool:
@@ -176,7 +173,7 @@ async def get_prediction(tg_user_id: int) -> str:
     async with ydb.aio.Driver(
             endpoint=settings.YDB_ENDPOINT,
             database=settings.YDB_DATABASE,
-            credentials=credentials
+            credentials=credentials_manager.get_credentials()
     ) as driver:
         await driver.wait(fail_fast=True)
 

@@ -4,15 +4,14 @@ import ydb
 import ydb.iam
 
 from configs import settings
-from db.db_ydb.credentials import get_credentials
+from db.db_ydb.credentials import credentials_manager
+
 from schemas import ChatMemberUpdatedData
 
 logger = logging.getLogger('db.ydb')
 
 full_path: str = '{}/ynyb/chat_data/'.format(settings.YDB_DATABASE.removeprefix('/'))
 table_name = 'chats'
-
-credentials = get_credentials()
 
 
 async def create_table() -> None:
@@ -21,7 +20,7 @@ async def create_table() -> None:
     async with ydb.aio.Driver(
         endpoint=settings.YDB_ENDPOINT,
         database=settings.YDB_DATABASE,
-        credentials=credentials
+        credentials=credentials_manager.get_credentials()
     ) as driver:
         await driver.wait(fail_fast=True)
 
@@ -55,7 +54,7 @@ async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
     async with ydb.aio.Driver(
         endpoint=settings.YDB_ENDPOINT,
         database=settings.YDB_DATABASE,
-        credentials=credentials
+        credentials=credentials_manager.get_credentials()
     ) as driver:
         await driver.wait(fail_fast=True)
 
