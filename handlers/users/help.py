@@ -2,6 +2,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from filters import GroupChat, PrivateChat
+from keyboards.inline import ikb_welcome_private_chat, ikb_welcome_group_chat
 from loader import dp
 
 help_text = """
@@ -28,7 +29,7 @@ help_text = """
 
 
 @dp.message(Command('help', 'start'), PrivateChat())
-async def command_start_handler(message: Message) -> None:
+async def welcome_private_chat(message: Message) -> None:
     global help_text
 
     text = (
@@ -39,11 +40,10 @@ async def command_start_handler(message: Message) -> None:
     if message.text == '/start':
         text = 'Привет 👋\n{}'.format(text)
 
-    await message.answer(text)
+    await message.answer(text, reply_markup=ikb_welcome_private_chat)
 
 
 @dp.message(Command('help', 'start'), GroupChat())
-async def command_start_handler(message: Message) -> None:
+async def welcome_group_chat(message: Message) -> None:
     global help_text
-
-    await message.answer(help_text)
+    await message.answer(help_text, reply_markup=ikb_welcome_group_chat)
