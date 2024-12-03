@@ -20,7 +20,7 @@ async def main() -> None:
     dp.message.middleware(ThrottlingMiddleware())
 
     try:
-        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types(), skip_updates=False)
+        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types(), skip_updates=True)
     finally:
         await bot.session.close()
 
