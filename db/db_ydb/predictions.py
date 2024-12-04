@@ -1,6 +1,7 @@
+import asyncio
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 import ydb
 import ydb.iam
@@ -80,6 +81,7 @@ class DBPrediction:
                 WHERE 
                     author_tg_user_id != $exclude_tg_user_id 
                     AND prediction_id NOT IN $exclude_prediction_ids
+                    AND accepted = TRUE
                 ORDER BY dttm_last_usage DESC
                 LIMIT 1;
                 """.format(
@@ -100,6 +102,34 @@ class DBPrediction:
 
         logger.warning(f'No suitable predictions for tg_user_id {self.tg_user_id}')
         return
+
+    async def update_dttm_last_usage(self, _pool: ydb.aio.QuerySessionPool, prediction_id: int) -> None:
+        logger.info('Trying to update dttm_last_usage for prediction_id: {}'.format(prediction_id))
+
+        try:
+            await _pool.execute_with_retries(
+                """
+                PRAGMA TablePathPrefix("{}");
+
+                DECLARE $prediction_id AS Uint32;
+                DECLARE $dttm_last_usage AS Timestamp;
+
+                UPDATE `{}`
+                SET dttm_last_usage = $dttm_last_usage
+                WHERE prediction_id = $prediction_id;
+                """.format(
+                    self.full_path, self.table_name_predictions
+                ),
+                {
+                    '$prediction_id': (prediction_id, ydb.PrimitiveType.Uint32),
+                    '$dttm_last_usage': (datetime.now(timezone.utc), ydb.PrimitiveType.Timestamp),
+                }
+            )
+        except Exception as err:
+            logger.error('Error while updating dttm_last_usage for prediction_id {}: {}'.
+                         format(prediction_id, err), exc_info=True)
+        else:
+            logger.info('dttm_last_usage for prediction_id {} has been updated successfully'.format(prediction_id))
 
     async def select_used_predictions(self, _pool: ydb.aio.QuerySessionPool) -> DataUsedPredictions | None:
         global full_path
@@ -196,3 +226,26 @@ async def get_prediction(tg_user_id: int) -> str:
             await dbp.upsert_data_used_predictions(pool, used_predictions)
 
             return random_prediction.text
+
+
+async def main():
+    tg_user_id = 1115821
+    exclude_prediction_ids = [0, 1, 2, 3]
+
+    dbp = DBPrediction(tg_user_id)
+    dbp.table_name_predictions = 'test_predictions_2'
+
+    async with ydb.aio.Driver(
+            endpoint=settings.YDB_ENDPOINT,
+            database=settings.YDB_DATABASE,
+            credentials=credentials_manager.get_credentials()
+    ) as driver:
+        await driver.wait(fail_fast=True)
+
+        async with ydb.aio.QuerySessionPool(driver) as pool:
+            # random_prediction = await dbp.select_random_prediction(pool, exclude_prediction_ids)
+            # print(repr(random_prediction))
+            await dbp.update_dttm_last_usage(pool, 10)
+
+if __name__ == '__main__':
+    asyncio.run(main())
