@@ -6,7 +6,6 @@ from keyboards.inline import ikb_welcome_private_chat, ikb_welcome_group_chat
 from loader import dp
 
 help_text = """
-Я новогодний бот для сотрудников Яндекса 🎅
 
 Новостной канал бота - <a href="https://nda.ya.ru/t/8Ve9IRKc79adW7">YNYB News</a>
 
@@ -41,7 +40,9 @@ async def welcome_private_chat(message: Message) -> None:
     ).format(help_text)
 
     if message.text == '/start':
-        text = 'Привет 👋\n{}'.format(text)
+        text = 'Привет! Я новогодний Бот Мороз 🎅, помогу вам погрузиться  в праздничный вайбик ✨ {}'.format(text)
+    else:
+        text = '🎄 <b>Я новогодний Бот Мороз для яндексоидов</b>{}'.format(text)
 
     await message.answer(text, reply_markup=ikb_welcome_private_chat)
 
@@ -49,4 +50,6 @@ async def welcome_private_chat(message: Message) -> None:
 @dp.message(Command('help', 'start'), GroupChat())
 async def welcome_group_chat(message: Message) -> None:
     global help_text
-    await message.answer(help_text, reply_markup=ikb_welcome_group_chat)
+    await message.answer(
+        '🎄 <b>Я Бот Мороз для яндексоидов</b>{}'.format(help_text), reply_markup=ikb_welcome_group_chat
+    )
