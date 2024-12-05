@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Literal
 
@@ -20,6 +20,21 @@ class DataUsedPredictions(BaseModel):
 
 class DataMaxPredictionId(BaseModel):
     max_prediction_id: int
+
+
+class GetPrediction(BaseModel):
+    error_occurred: bool = False
+    next_use_is_allowed_after: timedelta | None = None
+    no_suitable_predictions: bool = False
+    text: str | None = None
+
+    @field_validator('next_use_is_allowed_after')
+    @classmethod
+    def reformat_next_use_is_allowed_after(cls, v: timedelta | None) -> str | None:
+        if isinstance(v, timedelta):
+            hours, remainder = divmod(v.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            return '{:02}:{:02}:{:02}'.format(int(hours), int(minutes), int(seconds))
 
 
 class SnowRedisData(BaseModel):

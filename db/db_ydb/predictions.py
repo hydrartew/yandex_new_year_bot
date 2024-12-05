@@ -1,7 +1,7 @@
 import json
 import logging
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import ydb
 import ydb.iam
@@ -10,7 +10,7 @@ from grpc.aio import AioRpcError
 
 from configs import settings
 from db.db_ydb.credentials import credentials_manager
-from schemas import RandomPrediction, DataUsedPredictions, DataMaxPredictionId
+from schemas import RandomPrediction, DataUsedPredictions, DataMaxPredictionId, GetPrediction
 
 logger = logging.getLogger('db.ydb')
 
@@ -180,7 +180,7 @@ class DBPrediction:
             logger.error(f'Error UPSERT used_predictions: {data_used_predictions}: {e}', exc_info=True)
 
 
-async def get_prediction(tg_user_id: int) -> str:
+async def get_prediction(tg_user_id: int) -> GetPrediction:
     dbp = DBPrediction(tg_user_id)
 
     async with ydb.aio.Driver(
@@ -194,7 +194,11 @@ async def get_prediction(tg_user_id: int) -> str:
             tuple_predictions = await dbp.select_used_and_max_predictions(pool)
 
             if tuple_predictions is None:
-                return 'No suitable predictions'
+                return GetPrediction(error_occurred=True)
+
+            time_diff = datetime.now() - tuple_predictions[0].dttm_last_usage
+            if time_diff < timedelta(hours=12):
+                return GetPrediction(next_use_is_allowed_after=timedelta(hours=12) - time_diff)
 
             random_prediction = await dbp.select_prediction(pool, get_random_number(
                 range_max=tuple_predictions[1].max_prediction_id,
@@ -202,7 +206,7 @@ async def get_prediction(tg_user_id: int) -> str:
             ))
 
             if random_prediction is None:
-                return 'No suitable predictions'
+                return GetPrediction(no_suitable_predictions=True)
 
             tuple_predictions[0].prediction_ids.append(random_prediction.prediction_id)
             tuple_predictions[0].usage_times.append(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -210,7 +214,7 @@ async def get_prediction(tg_user_id: int) -> str:
 
             await dbp.upsert_data_used_predictions(pool, tuple_predictions[0])
 
-            return random_prediction.text
+            return GetPrediction(text=random_prediction.text)
 
 
 def get_random_number(range_max: int, excluded_numbers: list[int] | None = None):
