@@ -14,7 +14,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         self.caches = {
             'prediction': TTLCache(
                 maxsize=10_000,
-                ttl=10
+                ttl=15
             ),
             'snow': TTLCache(
                 maxsize=10_000,
