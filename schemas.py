@@ -18,6 +18,10 @@ class DataUsedPredictions(BaseModel):
     dttm_last_usage: datetime = datetime.now()
 
 
+class DataMaxPredictionId(BaseModel):
+    max_prediction_id: int
+
+
 class SnowRedisData(BaseModel):
     throw: int = 0
     get: int = 0

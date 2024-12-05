@@ -1,13 +1,16 @@
-import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+import random
+from datetime import datetime
 
 import ydb
 import ydb.iam
+from grpc import StatusCode
+from grpc.aio import AioRpcError
+
 from configs import settings
 from db.db_ydb.credentials import credentials_manager
-from schemas import RandomPrediction, DataUsedPredictions
+from schemas import RandomPrediction, DataUsedPredictions, DataMaxPredictionId
 
 logger = logging.getLogger('db.ydb')
 
@@ -58,80 +61,49 @@ class DBPrediction:
         self.table_name_predictions = table_name_predictions
         self.table_name_used_predictions = table_name_used_predictions
 
-    async def select_random_prediction(self, _pool: ydb.aio.QuerySessionPool,
-                                       exclude_prediction_ids: list[int] | None) -> RandomPrediction | None:
+    async def select_prediction(self, _pool: ydb.aio.QuerySessionPool, prediction_id: int) -> RandomPrediction | None:
 
-        if exclude_prediction_ids is None:
-            exclude_prediction_ids = []
-
-        logger.info(f'Trying to get random prediction for tg_user_id: {self.tg_user_id}')
+        logger.info('Trying to get prediction:{} for tg_user_id:{}'.format(prediction_id, self.tg_user_id))
 
         try:
             result_sets = await _pool.execute_with_retries(
                 """
                 PRAGMA TablePathPrefix("{}");
                 
-                DECLARE $exclude_prediction_ids AS List<Uint32>;
-                DECLARE $exclude_tg_user_id AS Uint64;
-                
-                SELECT
-                    prediction_id,
-                    text
-                FROM {}
-                WHERE 
-                    author_tg_user_id != $exclude_tg_user_id 
-                    AND prediction_id NOT IN $exclude_prediction_ids
-                    AND accepted = TRUE
-                ORDER BY dttm_last_usage DESC
-                LIMIT 1;
-                """.format(
-                    self.full_path, self.table_name_predictions
-                ),
-                {
-                    '$exclude_tg_user_id': (self.tg_user_id, ydb.PrimitiveType.Uint64),
-                    '$exclude_prediction_ids': (exclude_prediction_ids, ydb.ListType(ydb.PrimitiveType.Uint32))
-                }
-            )
-        except Exception as err:
-            logger.error(f'Error while getting prediction for tg_user_id {self.tg_user_id}: {err}', exc_info=True)
-        else:
-            if len(result_sets[0].rows) != 0:
-                random_prediction = result_sets[0].rows[0]
-                logger.info(f'Prediction for tg_user_id {self.tg_user_id} received successfully: {random_prediction}')
-                return RandomPrediction.model_validate(random_prediction)
-
-        logger.warning(f'No suitable predictions for tg_user_id {self.tg_user_id}')
-        return
-
-    async def update_dttm_last_usage(self, _pool: ydb.aio.QuerySessionPool, prediction_id: int) -> None:
-        logger.info('Trying to update dttm_last_usage for prediction_id: {}'.format(prediction_id))
-
-        try:
-            await _pool.execute_with_retries(
-                """
-                PRAGMA TablePathPrefix("{}");
-
                 DECLARE $prediction_id AS Uint32;
-                DECLARE $dttm_last_usage AS Timestamp;
-
-                UPDATE `{}`
-                SET dttm_last_usage = $dttm_last_usage
-                WHERE prediction_id = $prediction_id;
+                
+                SELECT prediction_id, text FROM `{}` WHERE prediction_id == $prediction_id;
                 """.format(
                     self.full_path, self.table_name_predictions
                 ),
                 {
                     '$prediction_id': (prediction_id, ydb.PrimitiveType.Uint32),
-                    '$dttm_last_usage': (datetime.now(timezone.utc), ydb.PrimitiveType.Timestamp),
                 }
             )
-        except Exception as err:
-            logger.error('Error while updating dttm_last_usage for prediction_id {}: {}'.
-                         format(prediction_id, err), exc_info=True)
-        else:
-            logger.info('dttm_last_usage for prediction_id {} has been updated successfully'.format(prediction_id))
 
-    async def select_used_predictions(self, _pool: ydb.aio.QuerySessionPool) -> DataUsedPredictions | None:
+        except AioRpcError as err:
+            if err.code() == StatusCode.RESOURCE_EXHAUSTED:
+                logger.critical('YDB resource exhausted while select prediction:{}'.format(prediction_id))
+            else:
+                logger.error('Unknown AioRpcError while select prediction:{} {}'
+                             .format(prediction_id, err), exc_info=True)
+
+        except Exception as err:
+            logger.error(f'Error while getting prediction for tg_user_id {self.tg_user_id}: {err}', exc_info=True)
+
+        else:
+            if len(result_sets[0].rows) != 0:
+                random_prediction = result_sets[0].rows[0]
+                logger.info('prediction_id:{} for tg_user_id:{} received successfully'.format(
+                    random_prediction.prediction_id, self.tg_user_id
+                ))
+                return RandomPrediction.model_validate(random_prediction)
+
+        logger.warning('No suitable predictions for tg_user_id:{}'.format(self.tg_user_id))
+        return
+
+    async def select_used_and_max_predictions(self, _pool: ydb.aio.QuerySessionPool
+                                              ) -> tuple[DataUsedPredictions, DataMaxPredictionId] | None:
         global full_path
 
         logger.info(f'Trying to get used predictions for tg_user_id: {self.tg_user_id}')
@@ -143,18 +115,29 @@ class DBPrediction:
     
                 DECLARE $tg_user_id AS Uint64;
     
-                SELECT * 
-                FROM {}
-                WHERE tg_user_id = $tg_user_id;
+                SELECT * FROM {} WHERE tg_user_id = $tg_user_id;
+                
+                SELECT MAX(prediction_id) as max_prediction_id FROM `{}`;
                 """.format(
-                    self.full_path, self.table_name_used_predictions
+                    self.full_path, self.table_name_used_predictions, self.table_name_predictions
                 ),
                 {
                     '$tg_user_id': (self.tg_user_id, ydb.PrimitiveType.Uint64),
                 }
             )
+
+        except AioRpcError as err:
+            if err.code() == StatusCode.RESOURCE_EXHAUSTED:
+                logger.critical('YDB resource exhausted while getting used and max predictions for tg_user_id:{}'
+                                .format(self.tg_user_id))
+            else:
+                logger.error('Unknown AioRpcError while getting used and max predictions for tg_user_id:{}: {}'
+                             .format(self.tg_user_id, err), exc_info=True)
+            return
+
         except Exception as err:
-            logger.error(f'Error while getting used predictions for tg_user_id {self.tg_user_id}: {err}', exc_info=True)
+            logger.error('Error while getting used and max predictions for tg_user_id {}: {}'
+                         .format(self.tg_user_id, err), exc_info=True)
             return
 
         if len(result_sets[0].rows) != 0:
@@ -164,7 +147,7 @@ class DBPrediction:
             data_used_predictions = DataUsedPredictions(tg_user_id=self.tg_user_id)
             logger.info(f'No used predictions for tg_user_id {self.tg_user_id}')
 
-        return data_used_predictions
+        return data_used_predictions, DataMaxPredictionId.model_validate(result_sets[1].rows[0])
 
     async def upsert_data_used_predictions(self, pool: ydb.aio.QuerySessionPool,
                                            data_used_predictions: DataUsedPredictions) -> None:
@@ -208,44 +191,30 @@ async def get_prediction(tg_user_id: int) -> str:
         await driver.wait(fail_fast=True)
 
         async with ydb.aio.QuerySessionPool(driver) as pool:
-            used_predictions = await dbp.select_used_predictions(pool)
+            tuple_predictions = await dbp.select_used_and_max_predictions(pool)
 
-            exclude_prediction_ids = None
-            if used_predictions is not None:  # None, если произошла ошибка в получении использованных предсказаний
-                exclude_prediction_ids = used_predictions.prediction_ids
+            if tuple_predictions is None:
+                return 'No suitable predictions'
 
-            random_prediction = await dbp.select_random_prediction(pool, exclude_prediction_ids)
+            random_prediction = await dbp.select_prediction(pool, get_random_number(
+                range_max=tuple_predictions[1].max_prediction_id,
+                excluded_numbers=tuple_predictions[0].prediction_ids
+            ))
 
             if random_prediction is None:
                 return 'No suitable predictions'
 
-            used_predictions.prediction_ids.append(random_prediction.prediction_id)
-            used_predictions.usage_times.append(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            used_predictions.dttm_last_usage = datetime.now()
+            tuple_predictions[0].prediction_ids.append(random_prediction.prediction_id)
+            tuple_predictions[0].usage_times.append(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            tuple_predictions[0].dttm_last_usage = datetime.now()
 
-            await dbp.upsert_data_used_predictions(pool, used_predictions)
+            await dbp.upsert_data_used_predictions(pool, tuple_predictions[0])
 
             return random_prediction.text
 
 
-async def main():
-    tg_user_id = 1115821
-    exclude_prediction_ids = [0, 1, 2, 3]
-
-    dbp = DBPrediction(tg_user_id)
-    dbp.table_name_predictions = 'test_predictions_2'
-
-    async with ydb.aio.Driver(
-            endpoint=settings.YDB_ENDPOINT,
-            database=settings.YDB_DATABASE,
-            credentials=credentials_manager.get_credentials()
-    ) as driver:
-        await driver.wait(fail_fast=True)
-
-        async with ydb.aio.QuerySessionPool(driver) as pool:
-            # random_prediction = await dbp.select_random_prediction(pool, exclude_prediction_ids)
-            # print(repr(random_prediction))
-            await dbp.update_dttm_last_usage(pool, 10)
-
-if __name__ == '__main__':
-    asyncio.run(main())
+def get_random_number(range_max: int, excluded_numbers: list[int] | None = None):
+    while True:
+        random_number = random.randint(0, range_max)
+        if excluded_numbers is None or random_number not in excluded_numbers:
+            return random_number
