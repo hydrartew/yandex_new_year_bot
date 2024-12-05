@@ -28,6 +28,10 @@ class ThrottlingMiddleware(BaseMiddleware):
                 maxsize=10_000,
                 ttl=30
             ),
+            'quiz': TTLCache(
+                maxsize=10_000,
+                ttl=10
+            ),
         }
 
     async def __call__(
