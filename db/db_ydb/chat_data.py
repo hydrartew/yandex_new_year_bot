@@ -51,6 +51,8 @@ async def create_table() -> None:
 async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
     logger.info('Upsert table `{}` with data: {}'.format(table_name, repr(data)))
 
+    # TODO: сделать обработчик RESOURCE_EXHAUSTED и добавить retry
+
     async with ydb.aio.Driver(
         endpoint=settings.YDB_ENDPOINT,
         database=settings.YDB_DATABASE,
