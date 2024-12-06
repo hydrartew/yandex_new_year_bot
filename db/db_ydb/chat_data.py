@@ -1,7 +1,11 @@
 import logging
 
+from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
+
 import ydb
 import ydb.iam
+from grpc import StatusCode
+from grpc.aio import AioRpcError
 
 from configs import settings
 from db.db_ydb.credentials import credentials_manager
@@ -48,10 +52,17 @@ async def create_table() -> None:
                 logger.error(f'Error creating table {table_name}: {e}', exc_info=True)
 
 
+@retry(
+    stop=stop_after_attempt(7),
+    wait=wait_exponential(
+        multiplier=2,
+        min=5,
+        max=60
+    ),
+    before_sleep=before_sleep_log(logger, logging.INFO)
+)
 async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
     logger.info('Upsert table `{}` with data: {}'.format(table_name, repr(data)))
-
-    # TODO: сделать обработчик RESOURCE_EXHAUSTED и добавить retry
 
     async with ydb.aio.Driver(
         endpoint=settings.YDB_ENDPOINT,
@@ -100,9 +111,24 @@ async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
                     }
                 )
                 logger.info('Table `{}` updated successfully for chat_id:{}'.format(table_name, data.chat_id))
+
+            except AioRpcError as err:
+                if err.code() == StatusCode.RESOURCE_EXHAUSTED:
+                    logger.error(
+                        'YDB resource exhausted while UPSERT `{}` with chat_data:{}'
+                        .format(table_name, repr(data.chat_id))
+                    )
+                else:
+                    logger.error(
+                        'Unknown AioRpcError while UPSERT `{}` with chat_data:{} {}'
+                        .format(table_name, repr(data), err), exc_info=True
+                    )
+                raise
             except Exception as e:
-                logger.error('Error while upsert table `{}` with data {}: {}'.format(
-                    table_name, repr(data), e), exc_info=True)
+                logger.error(
+                    'Error while upsert UPSERT `{}` with data {}: {}'.format(table_name, repr(data), e), exc_info=True
+                )
+                raise
 
 
 async def main():
