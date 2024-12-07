@@ -244,7 +244,11 @@ async def get_prediction(tg_user_id: int) -> GetPrediction:
             database=settings.YDB_DATABASE,
             credentials=credentials_manager.get_credentials()
     ) as driver:
-        await driver.wait(fail_fast=True)
+        try:
+            await driver.wait()
+        except Exception as e:
+            logger.error('Error while connecting to YDB: {}'.format(e), exc_info=True)
+            return GetPrediction(error_occurred=True)
 
         async with ydb.aio.QuerySessionPool(driver) as pool:
             tuple_predictions = await dbp.select_used_and_max_predictions(pool)
@@ -281,7 +285,11 @@ async def get_prediction_stats(tg_user_id: int) -> PredictionStats:
             database=settings.YDB_DATABASE,
             credentials=credentials_manager.get_credentials()
     ) as driver:
-        await driver.wait(fail_fast=True)
+        try:
+            await driver.wait(timeout=2, fail_fast=True)
+        except Exception as e:
+            logger.error('Error while connecting to YDB: {}'.format(e), exc_info=True)
+            return PredictionStats()
 
         async with ydb.aio.QuerySessionPool(driver) as pool:
             return await dbp.get_stats(pool)
