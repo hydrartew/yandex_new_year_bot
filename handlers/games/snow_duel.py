@@ -241,3 +241,11 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
         message_id=game_room_message_id
     )
     await message.answer("Дуэль отменена", reply_to_message_id=game_room_message_id)
+
+
+@dp.message(Command('snow', 'snow_duel', 'snowman', 'quiz'), GroupChat(), SnowDuelState.in_game)
+async def check_state(message: Message) -> None:
+    await message.reply(
+        'Нельзя выполнить это действие, пока ты участвуешь в дуэли. '
+        'Если хочешь её отменить, вызови команду /cancel_snow_duel'
+    )
