@@ -44,7 +44,7 @@ class PredictionStats(BaseModel):
     @field_validator('written', 'received')
     @classmethod
     def change_none_to_str(cls, v: int | None) -> int | str:
-        return 'N/A' if v is None else v
+        return 'N/A' if not v else v
 
 
 class SnowRedisData(BaseModel):
