@@ -41,10 +41,9 @@ class PredictionStats(BaseModel):
     written: int | None = None
     received: int | None = None
 
-    @field_validator('written', 'received')
-    @classmethod
-    def change_none_to_str(cls, v: int | None) -> int | str:
-        return 'N/A' if not v else v
+    def model_post_init(self, __context):
+        self.written = 'N/A' if not self.written else self.written
+        self.received = 'N/A' if not self.received else self.received
 
 
 class SnowRedisData(BaseModel):
