@@ -3,11 +3,12 @@ from aiogram.types import Message
 
 from configs import snow_duel_config
 from db import db_redis, db_ydb
+from filters import IsSubscribed
 
 from loader import dp
 
 
-@dp.message(Command('stats', 'profile'), flags={"throttling_key": "stats"})
+@dp.message(Command('stats', 'profile'), IsSubscribed(), flags={"throttling_key": "stats"})
 async def my_stats(message: Message) -> None:
 
     game_stats = await db_redis.get_stats(message.from_user.id)

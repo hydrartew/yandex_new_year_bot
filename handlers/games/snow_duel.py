@@ -9,7 +9,7 @@ from aiogram.fsm.storage.base import StorageKey
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
 from db.db_redis import SnowDuelDBQueries
-from filters import GroupChat
+from filters import GroupChat, IsSubscribed
 from handlers import dp
 from keyboards.inline import ikb_throw
 from loader import bot
@@ -18,67 +18,11 @@ from schemas import WhoMoves, SnowDuelRoom, TgUsernamesWhoThrowsAndWhoGets
 logger = logging.getLogger('handlers')
 
 
-def hud(_data: SnowDuelRoom,
-        finish_game: bool = False,
-        cancel_game: bool = False,
-        who_canceled_game: str | None = None) -> str:
-
-    if finish_game:
-
-        winner = f'{_data.owner.tg_username}'
-        if _data.opponent.points >= 2:
-            winner = f'{_data.opponent.tg_username}'
-
-        return (
-            '<blockquote>❄️🔫 Снежная дуэль (завершена)</blockquote>\n'
-            f'Расстояние: {_data.distance} шагов\n\n'
-            f'Раундов: {_data.current_round}\n\n'
-            f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
-            f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
-            f'🏆 @{winner} - побеждает'
-        )
-
-    if cancel_game:
-        if _data.opponent is None:
-            return (
-                f'@{_data.owner.tg_username} предлагает сразиться в снежной дуэли ❄️🔫\n\n'
-                f'Дуэль отменена'
-            )
-        return (
-            '<blockquote>❄️🔫 Снежная дуэль (отменена)</blockquote>\n'
-            f'Расстояние: {_data.distance} шагов\n\n'
-            f'Раундов: {_data.current_round}\n\n'
-            f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
-            f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
-            f'❌ @{who_canceled_game} - отменяет'
-        )
-
-    return (
-        '<blockquote>❄️🔫 Снежная дуэль</blockquote>\n'
-        f'Расстояние: {_data.distance} шагов\n\n'
-        f'Раунд: {_data.current_round}\n\n'
-        f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
-        f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
-    )
-
-
-def tg_usernames_who_throws_and_who_gets(_data: SnowDuelRoom) -> TgUsernamesWhoThrowsAndWhoGets:
-    if _data.who_moves == WhoMoves.owner:
-        return TgUsernamesWhoThrowsAndWhoGets(
-            throw=_data.owner.tg_username,
-            get=_data.opponent.tg_username
-        )
-    return TgUsernamesWhoThrowsAndWhoGets(
-        throw=_data.opponent.tg_username,
-        get=_data.owner.tg_username
-    )
-
-
 class SnowDuelState(StatesGroup):
     in_game = State()
 
 
-@dp.message(Command('snow_duel'), GroupChat())
+@dp.message(Command('snow_duel'), GroupChat(), IsSubscribed())
 async def start_game(message: Message, state: FSMContext) -> None:
     if await state.get_state() is not None:
         await message.reply('Ты уже участвуешь в дуэли, если хочешь отменить её, пропиши команду /cancel_snow_duel')
@@ -102,7 +46,7 @@ async def start_game(message: Message, state: FSMContext) -> None:
     )
 
 
-@dp.callback_query(F.data == 'start_snow_duel')
+@dp.callback_query(F.data == 'start_snow_duel', IsSubscribed())
 async def join_the_game(call: CallbackQuery, state: FSMContext):
     if await state.get_state() is not None:
         await call.answer(
@@ -143,7 +87,7 @@ async def join_the_game(call: CallbackQuery, state: FSMContext):
     )
 
 
-@dp.callback_query(F.data == 'throw_snowball', SnowDuelState.in_game)
+@dp.callback_query(F.data == 'throw_snowball', SnowDuelState.in_game, IsSubscribed())
 async def throw_snowball(call: CallbackQuery, state: FSMContext):
 
     _data = await SnowDuelDBQueries(
@@ -200,8 +144,8 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext):
     )
 
 
-@dp.message(Command("cancel_snow_duel"))
-@dp.message(F.text.casefold() == "cancel_snow_duel")
+@dp.message(Command("cancel_snow_duel"), IsSubscribed())
+@dp.message(F.text.casefold() == "cancel_snow_duel", IsSubscribed())
 async def cancel_handler(message: Message, state: FSMContext) -> None:
     if await state.get_state() is None:
         return
@@ -243,9 +187,65 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     await message.answer("Дуэль отменена", reply_to_message_id=game_room_message_id)
 
 
-@dp.message(Command('snow', 'snow_duel', 'snowman', 'quiz'), GroupChat(), SnowDuelState.in_game)
+@dp.message(Command('snow', 'snow_duel', 'snowman', 'quiz'), GroupChat(), SnowDuelState.in_game, IsSubscribed())
 async def check_state(message: Message) -> None:
     await message.reply(
         'Нельзя выполнить это действие, пока ты участвуешь в дуэли. '
         'Если хочешь её отменить, вызови команду /cancel_snow_duel'
+    )
+
+
+def hud(_data: SnowDuelRoom,
+        finish_game: bool = False,
+        cancel_game: bool = False,
+        who_canceled_game: str | None = None) -> str:
+
+    if finish_game:
+
+        winner = f'{_data.owner.tg_username}'
+        if _data.opponent.points >= 2:
+            winner = f'{_data.opponent.tg_username}'
+
+        return (
+            '<blockquote>❄️🔫 Снежная дуэль (завершена)</blockquote>\n'
+            f'Расстояние: {_data.distance} шагов\n\n'
+            f'Раундов: {_data.current_round}\n\n'
+            f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
+            f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
+            f'🏆 @{winner} - побеждает'
+        )
+
+    if cancel_game:
+        if _data.opponent is None:
+            return (
+                f'@{_data.owner.tg_username} предлагает сразиться в снежной дуэли ❄️🔫\n\n'
+                f'Дуэль отменена'
+            )
+        return (
+            '<blockquote>❄️🔫 Снежная дуэль (отменена)</blockquote>\n'
+            f'Расстояние: {_data.distance} шагов\n\n'
+            f'Раундов: {_data.current_round}\n\n'
+            f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
+            f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
+            f'❌ @{who_canceled_game} - отменяет'
+        )
+
+    return (
+        '<blockquote>❄️🔫 Снежная дуэль</blockquote>\n'
+        f'Расстояние: {_data.distance} шагов\n\n'
+        f'Раунд: {_data.current_round}\n\n'
+        f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
+        f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
+    )
+
+
+def tg_usernames_who_throws_and_who_gets(_data: SnowDuelRoom) -> TgUsernamesWhoThrowsAndWhoGets:
+    if _data.who_moves == WhoMoves.owner:
+        return TgUsernamesWhoThrowsAndWhoGets(
+            throw=_data.owner.tg_username,
+            get=_data.opponent.tg_username
+        )
+    return TgUsernamesWhoThrowsAndWhoGets(
+        throw=_data.opponent.tg_username,
+        get=_data.owner.tg_username
     )

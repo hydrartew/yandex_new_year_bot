@@ -5,14 +5,14 @@ from aiogram.types import Message
 
 from configs import secret_box
 from db import db_redis
-from filters import GroupChat
+from filters import GroupChat, IsSubscribed
 
 from handlers import dp
 
 logger = logging.getLogger('handlers')
 
 
-@dp.message(Command('snow'), GroupChat(), flags={"throttling_key": "snow"})
+@dp.message(Command('snow'), GroupChat(), IsSubscribed(), flags={"throttling_key": "snow"})
 async def game_snow(message: Message) -> None:
     # если сообщение без reply
     if message.reply_to_message is None:

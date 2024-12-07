@@ -3,11 +3,11 @@ from aiogram.types import Message
 
 from configs import SnowmanFallingChances
 from db.db_redis import update_snowman
-from filters import GroupChat
+from filters import GroupChat, IsSubscribed
 from handlers import dp
 
 
-@dp.message(Command('snowman'), GroupChat(), flags={"throttling_key": "snowman"})
+@dp.message(Command('snowman'), GroupChat(), IsSubscribed(), flags={"throttling_key": "snowman"})
 async def game_snowman(message: Message) -> None:
     list_text = message.text.split()
     if len(list_text) != 2 or not list_text[1].isdigit() or int(list_text[1]) > 10 or int(list_text[1]) < 1:

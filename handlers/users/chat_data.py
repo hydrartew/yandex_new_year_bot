@@ -4,12 +4,13 @@ from aiogram.filters import ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
 from aiogram.types import ChatMemberUpdated
 
 from db.db_ydb import upsert_chat_data
+from filters import IsBlocked
 from loader import dp
 from schemas import ChatMemberUpdatedData
 
 
-@dp.my_chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
-@dp.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+@dp.my_chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER), IsBlocked())
+@dp.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER), IsBlocked())
 async def update_chat_data(event: ChatMemberUpdated):
     await upsert_chat_data(
         ChatMemberUpdatedData(

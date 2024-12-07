@@ -2,13 +2,13 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from db import db_ydb
-from filters import GroupChat
+from filters import GroupChat, IsSubscribed
 from handlers import dp
 
 flags = {"throttling_key": "prediction"}
 
 
-@dp.message(Command('prediction'), GroupChat(), flags=flags)
+@dp.message(Command('prediction'), GroupChat(), IsSubscribed(), flags=flags)
 async def game_prediction(message: Message) -> None:
     prediction = await db_ydb.get_prediction(message.from_user.id)
 

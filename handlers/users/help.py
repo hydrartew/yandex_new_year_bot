@@ -1,9 +1,14 @@
+import logging
+
+from aiogram.exceptions import TelegramForbiddenError
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from filters import GroupChat, PrivateChat
+from filters import GroupChat, PrivateChat, IsSubscribed
 from keyboards.inline import ikb_welcome_private_chat, ikb_welcome_group_chat
 from loader import dp
+
+logger = logging.getLogger('handlers')
 
 help_text = """
 
@@ -23,14 +28,14 @@ help_text = """
 4️⃣ Игра длится до 2-х попаданий</i>
 
 <blockquote>☃️ <b>Снеговичок</b> /snowman</blockquote>
-<i>Цель игры слепить самого высокого снеговика. Но будьте аккуратны, он может упасть.</i>
+<i>Цель игры слепить самого высокого снеговика. Но будьте аккуратны, он может упасть</i>
 
 <blockquote>🔮 <b>Предсказания</b>  /prediction</blockquote>
 <i>Можно использовать 1 раз в 12ч (ты можешь написать свое предсказание через <a href="https://forms.yandex-team.ru/ext/surveys/13711111?topic_1=prediction">форму</a>, оно случайно выпадет кому-то)</i>
 """
 
 
-@dp.message(Command('help', 'start'), PrivateChat())
+@dp.message(Command('help', 'start'), PrivateChat(), IsSubscribed())
 async def welcome_private_chat(message: Message) -> None:
     global help_text
 
@@ -40,14 +45,17 @@ async def welcome_private_chat(message: Message) -> None:
     ).format(help_text)
 
     if message.text == '/start':
-        text = 'Привет! Я новогодний Бот Мороз 🎅, помогу вам погрузиться  в праздничный вайбик ✨ {}'.format(text)
+        text = 'Привет! Я новогодний Бот Мороз 🎅, помогу тебе погрузиться  в праздничный вайбик ✨ {}'.format(text)
     else:
         text = '🎄 <b>Я новогодний Бот Мороз для яндексоидов</b>{}'.format(text)
 
-    await message.answer(text, reply_markup=ikb_welcome_private_chat)
+    try:
+        await message.answer(text, reply_markup=ikb_welcome_private_chat)
+    except TelegramForbiddenError:
+        logger.warning('Bot was blocked by the tg_user_id:{}'.format(message.from_user.id))
 
 
-@dp.message(Command('help', 'start'), GroupChat())
+@dp.message(Command('help', 'start'), GroupChat(), IsSubscribed())
 async def welcome_group_chat(message: Message) -> None:
     global help_text
     await message.answer(
