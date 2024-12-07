@@ -240,9 +240,9 @@ async def get_prediction(tg_user_id: int) -> GetPrediction:
     dbp = DBPrediction(tg_user_id)
 
     async with ydb.aio.Driver(
-            endpoint=settings.YDB_ENDPOINT,
-            database=settings.YDB_DATABASE,
-            credentials=credentials_manager.get_credentials()
+        endpoint=settings.YDB_ENDPOINT,
+        database=settings.YDB_DATABASE,
+        credentials=credentials_manager.get_credentials()
     ) as driver:
         try:
             await driver.wait()
@@ -281,9 +281,9 @@ async def get_prediction_stats(tg_user_id: int) -> PredictionStats:
     dbp = DBPrediction(tg_user_id)
 
     async with ydb.aio.Driver(
-            endpoint=settings.YDB_ENDPOINT,
-            database=settings.YDB_DATABASE,
-            credentials=credentials_manager.get_credentials()
+        endpoint=settings.YDB_ENDPOINT,
+        database=settings.YDB_DATABASE,
+        credentials=credentials_manager.get_credentials()
     ) as driver:
         try:
             await driver.wait(timeout=2, fail_fast=True)
