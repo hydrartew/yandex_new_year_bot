@@ -10,7 +10,7 @@ from grpc.aio import AioRpcError
 
 from configs import settings
 from db.db_ydb.credentials import credentials_manager
-from schemas import RandomPrediction, DataUsedPredictions, DataMaxPredictionId, GetPrediction
+from schemas import RandomPrediction, DataUsedPredictions, DataMaxPredictionId, GetPrediction, PredictionStats
 
 logger = logging.getLogger('db.ydb')
 
@@ -179,6 +179,62 @@ class DBPrediction:
         except Exception as e:
             logger.error(f'Error UPSERT used_predictions: {data_used_predictions}: {e}', exc_info=True)
 
+    async def get_stats(self, _pool: ydb.aio.QuerySessionPool) -> PredictionStats:
+
+        logger.info('Trying to get prediction stats for tg_user_id:{}'.format(self.tg_user_id))
+
+        try:
+            result_sets = await _pool.execute_with_retries(
+                """
+                PRAGMA TablePathPrefix("{}");
+
+                DECLARE $tg_user_id AS Uint64;
+
+                SELECT 
+                    COUNT(author_tg_user_id) AS written 
+                FROM `{}` 
+                WHERE author_tg_user_id == $tg_user_id;
+                
+                SELECT 
+                    ListLength(Json::ConvertToList(prediction_ids)) AS received 
+                FROM `{}` 
+                WHERE tg_user_id == $tg_user_id;
+                """.format(
+                    self.full_path, self.table_name_predictions, self.table_name_used_predictions
+                ),
+                {
+                    '$tg_user_id': (self.tg_user_id, ydb.PrimitiveType.Uint64),
+                }
+            )
+            prediction_stats = PredictionStats(
+                written=result_sets[0].rows[0].get('written'),
+                received=result_sets[1].rows[0].get('received')
+            )
+            logger.info(
+                'Prediction stats for tg_user_id:{} received successfully: {}'
+                .format(self.tg_user_id, repr(prediction_stats))
+            )
+            return prediction_stats
+
+        except AioRpcError as err:
+            if err.code() == StatusCode.RESOURCE_EXHAUSTED:
+                logger.error(
+                    'YDB resource exhausted while getting prediction stats for tg_user_id:{}'.format(self.tg_user_id)
+                )
+            else:
+                logger.error(
+                    'Unknown AioRpcError while getting prediction stats for tg_user_id:{}'
+                    .format(self.tg_user_id), exc_info=True
+                )
+
+        except Exception as err:
+            logger.error(
+                'Unknown error while getting prediction stats for tg_user_id:{}, err: {}'
+                .format(self.tg_user_id, err), exc_info=True
+            )
+
+        return PredictionStats()
+
 
 async def get_prediction(tg_user_id: int) -> GetPrediction:
     dbp = DBPrediction(tg_user_id)
@@ -215,6 +271,20 @@ async def get_prediction(tg_user_id: int) -> GetPrediction:
             await dbp.upsert_data_used_predictions(pool, tuple_predictions[0])
 
             return GetPrediction(text=random_prediction.text)
+
+
+async def get_prediction_stats(tg_user_id: int) -> PredictionStats:
+    dbp = DBPrediction(tg_user_id)
+
+    async with ydb.aio.Driver(
+            endpoint=settings.YDB_ENDPOINT,
+            database=settings.YDB_DATABASE,
+            credentials=credentials_manager.get_credentials()
+    ) as driver:
+        await driver.wait(fail_fast=True)
+
+        async with ydb.aio.QuerySessionPool(driver) as pool:
+            return await dbp.get_stats(pool)
 
 
 def get_random_number(range_max: int, excluded_numbers: list[int] | None = None):

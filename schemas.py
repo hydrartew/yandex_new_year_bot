@@ -37,6 +37,16 @@ class GetPrediction(BaseModel):
             return '{:02}:{:02}:{:02}'.format(int(hours), int(minutes), int(seconds))
 
 
+class PredictionStats(BaseModel):
+    written: int | None = None
+    received: int | None = None
+
+    @field_validator('written', 'received')
+    @classmethod
+    def change_none_to_str(cls, v: int | None) -> int | str:
+        return 'N/A' if v is None else v
+
+
 class SnowRedisData(BaseModel):
     throw: int = 0
     get: int = 0
