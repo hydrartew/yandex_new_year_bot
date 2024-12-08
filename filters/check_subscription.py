@@ -27,7 +27,10 @@ class IsSubscribed(BaseFilter):
                         reply_markup=ikb_subscription
                     )
                 except TelegramForbiddenError:
-                    logger.warning('Bot was blocked by the tg_user_id:{}'.format(message.from_user.id))
+                    logger.warning(
+                        'The message could not be sent because bot was blocked by the tg_user_id:{}'
+                        .format(message.from_user.id)
+                    )
 
             else:
                 await message.answer(

@@ -52,7 +52,10 @@ async def welcome_private_chat(message: Message) -> None:
     try:
         await message.answer(text, reply_markup=ikb_welcome_private_chat)
     except TelegramForbiddenError:
-        logger.warning('Bot was blocked by the tg_user_id:{}'.format(message.from_user.id))
+        logger.warning(
+            'The message could not be sent because bot was blocked by the tg_user_id:{}'
+            .format(message.from_user.id)
+        )
 
 
 @dp.message(Command('help', 'start'), GroupChat(), IsSubscribed())
