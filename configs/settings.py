@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
     path_ssl_ca_certs: str = f'{BASE_DIR}/configs/.redis/YandexInternalRootCA.crt'
 
-    class SnowSecretBox:
+    class SnowSecretBoxConfig:
         """Конфигурация шанса выпадения сюрприз бокса для игры ``/snow``"""
         config = {  # TODO: обернуть в pydantic модель
             "percentage_chance": "0.2%",  # 1/500

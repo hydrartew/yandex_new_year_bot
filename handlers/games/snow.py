@@ -42,8 +42,8 @@ async def game_snow(message: Message) -> None:
         message.reply_to_message.message_id
     ))
 
-    if settings.SnowSecretBox.is_secret_box():
-        number_snowballs = settings.SnowSecretBox.number_snowballs()
+    if settings.SnowSecretBoxConfig.is_secret_box():
+        number_snowballs = settings.SnowSecretBoxConfig.number_snowballs()
 
         logger.info('/snow tg_user_id:{} gets secret_box with number_snowballs: {}'.format(
             message.from_user.id, number_snowballs
