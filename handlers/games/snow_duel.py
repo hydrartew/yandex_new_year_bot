@@ -17,12 +17,14 @@ from schemas import WhoMoves, SnowDuelRoom, TgUsernamesWhoThrowsAndWhoGets
 
 logger = logging.getLogger('handlers')
 
+flags = {"throttling_key": "snow_duel"}
+
 
 class SnowDuelState(StatesGroup):
     in_game = State()
 
 
-@dp.message(Command('snow_duel'), GroupChat(), IsSubscribed())
+@dp.message(Command('snow_duel'), GroupChat(), IsSubscribed(), flags=flags)
 async def start_game(message: Message, state: FSMContext) -> None:
     if await state.get_state() is not None:
         await message.reply('Ты уже участвуешь в дуэли, если хочешь отменить её, пропиши команду /cancel_snow_duel')
@@ -89,7 +91,6 @@ async def join_the_game(call: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(F.data == 'throw_snowball', SnowDuelState.in_game, IsSubscribed())
 async def throw_snowball(call: CallbackQuery, state: FSMContext):
-
     _data = await SnowDuelDBQueries(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id
@@ -144,8 +145,8 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext):
     )
 
 
-@dp.message(Command("cancel_snow_duel"), IsSubscribed())
-@dp.message(F.text.casefold() == "cancel_snow_duel", IsSubscribed())
+@dp.message(Command("cancel_snow_duel"), IsSubscribed(), flags=flags)
+@dp.message(F.text.casefold() == "cancel_snow_duel", IsSubscribed(), flags=flags)
 async def cancel_handler(message: Message, state: FSMContext) -> None:
     if await state.get_state() is None:
         return
@@ -187,7 +188,9 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     await message.answer("Дуэль отменена", reply_to_message_id=game_room_message_id)
 
 
-@dp.message(Command('snow', 'snow_duel', 'snowman', 'quiz'), GroupChat(), SnowDuelState.in_game, IsSubscribed())
+@dp.message(
+    Command('snow', 'snow_duel', 'snowman', 'quiz'), GroupChat(), SnowDuelState.in_game, IsSubscribed(), flags=flags
+)
 async def check_state(message: Message) -> None:
     await message.reply(
         'Нельзя выполнить это действие, пока ты участвуешь в дуэли. '
@@ -199,7 +202,6 @@ def hud(_data: SnowDuelRoom,
         finish_game: bool = False,
         cancel_game: bool = False,
         who_canceled_game: str | None = None) -> str:
-
     if finish_game:
 
         winner = f'{_data.owner.tg_username}'

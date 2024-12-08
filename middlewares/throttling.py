@@ -12,30 +12,30 @@ logger = logging.getLogger('middleware')
 class ThrottlingMiddleware(BaseMiddleware):
     def __init__(self):
         self.caches = {
-            'prediction': TTLCache(
-                maxsize=10_000,
-                ttl=15
-            ),
-            'snow': TTLCache(
-                maxsize=10_000,
-                ttl=1.5
-            ),
-            'snowman': TTLCache(
-                maxsize=10_000,
-                ttl=1.5
-            ),
-            'stats': TTLCache(
-                maxsize=10_000,
-                ttl=30
-            ),
-            'quiz': TTLCache(
-                maxsize=10_000,
-                ttl=10
+            'help': TTLCache(
+                ttl=2, maxsize=10_000
             ),
             'night_king': TTLCache(
-                maxsize=10_000,
-                ttl=60
+                ttl=60, maxsize=10_000
             ),
+            'prediction': TTLCache(
+                ttl=15, maxsize=10_000
+            ),
+            'quiz': TTLCache(
+                ttl=10, maxsize=10_000
+            ),
+            'snow': TTLCache(
+                ttl=1.5, maxsize=10_000
+            ),
+            'snow_duel': TTLCache(
+                ttl=3, maxsize=10_000
+            ),
+            'snowman': TTLCache(
+                ttl=1.5, maxsize=10_000
+            ),
+            'stats': TTLCache(
+                ttl=30, maxsize=10_000
+            )
         }
 
     async def __call__(

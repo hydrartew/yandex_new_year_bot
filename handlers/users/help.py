@@ -10,6 +10,8 @@ from loader import dp
 
 logger = logging.getLogger('handlers')
 
+flags = {"throttling_key": "help"}
+
 help_text = """
 
 Новостной канал бота - <a href="https://nda.ya.ru/t/8Ve9IRKc79adW7">YNYB News</a>
@@ -35,7 +37,7 @@ help_text = """
 """
 
 
-@dp.message(Command('help', 'start'), PrivateChat(), IsSubscribed())
+@dp.message(Command('help', 'start'), PrivateChat(), IsSubscribed(), flags=flags)
 async def welcome_private_chat(message: Message) -> None:
     global help_text
 
@@ -58,7 +60,7 @@ async def welcome_private_chat(message: Message) -> None:
         )
 
 
-@dp.message(Command('help', 'start'), GroupChat(), IsSubscribed())
+@dp.message(Command('help', 'start'), GroupChat(), IsSubscribed(), flags=flags)
 async def welcome_group_chat(message: Message) -> None:
     global help_text
     await message.answer(
