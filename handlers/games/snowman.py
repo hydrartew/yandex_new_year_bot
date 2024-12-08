@@ -27,7 +27,9 @@ async def game_snowman(message: Message) -> None:
 
     # если снеговик упал и НЕ первый ход
     if snowman_fall.is_fall and (snowman_data.current - height_increased != 0):
-        await message.answer('{}, и он упал 🫠 (шанс падения: {})'.format(text, snowman_fall.percentage_falling_chance))
+        await message.answer(
+            '{}, и он упал 🫠 (шанс падения: {})'.format(text, snowman_fall.ths_percentage_falling_chance)
+        )
         await update_snowman(message.from_user.id, -1)
     else:
-        await message.answer(text='{}\nТекущий рост: {} см'.format(text, snowman_data.current))
+        await message.answer('{}\nТекущий рост: {} см'.format(text, snowman_data.current))

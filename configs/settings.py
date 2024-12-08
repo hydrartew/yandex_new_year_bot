@@ -189,7 +189,11 @@ class Settings(BaseSettings):
 
         @property
         def is_fall(self):
-            return random.random() <= self.config[self.height_increased - 1].percentage_falling_chance
+            return random.random() <= self.ths_percentage_falling_chance
+
+        @property
+        def ths_percentage_falling_chance(self):
+            return self.config[self.height_increased - 1].percentage_falling_chance
 
 
 settings = Settings()
