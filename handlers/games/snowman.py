@@ -1,7 +1,7 @@
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from configs import SnowmanFallingChances
+from configs import settings
 from db.db_redis import update_snowman
 from filters import GroupChat, IsSubscribed
 from handlers import dp
@@ -19,7 +19,7 @@ async def game_snowman(message: Message) -> None:
         return
 
     height_increased = int(list_text[1])
-    snowman_fall = SnowmanFallingChances(height_increased)
+    snowman_fall = settings.ConfigSnowmanFallingChances(height_increased)
 
     snowman_data = await update_snowman(message.from_user.id, height_increased)
 
