@@ -6,10 +6,8 @@ from db import db_ydb
 from filters import GroupChat, IsSubscribed
 from handlers import dp
 
-flags = {"throttling_key": "prediction"}
 
-
-@dp.message(Command('prediction'), GroupChat(), IsSubscribed(), flags=flags)
+@dp.message(Command('prediction'), GroupChat(), IsSubscribed(), flags={"throttling_key": "prediction"})
 async def game_prediction(message: Message) -> None:
     prediction = await db_ydb.get_prediction(message.from_user.id)
 
