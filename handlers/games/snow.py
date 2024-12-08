@@ -3,7 +3,7 @@ import logging
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from configs import secret_box
+from configs import settings
 from db import db_redis
 from filters import GroupChat, IsSubscribed
 
@@ -42,8 +42,8 @@ async def game_snow(message: Message) -> None:
         message.reply_to_message.message_id
     ))
 
-    if secret_box.is_secret_box:
-        number_snowballs = secret_box.number_snowballs
+    if settings.SnowSecretBox.is_secret_box():
+        number_snowballs = settings.SnowSecretBox.number_snowballs()
 
         logger.info('/snow tg_user_id:{} gets secret_box with number_snowballs: {}'.format(
             message.from_user.id, number_snowballs
