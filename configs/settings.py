@@ -14,8 +14,20 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=f'{BASE_DIR}/.env', env_file_encoding='utf-8')
 
     TELEGRAM_BOT_TOKEN: SecretStr
+    TELEGRAM_BOT_LOGIN: str = 'yandex_new_year_bot'
+
     TELEGRAM_API_ID: int
     TELEGRAM_API_HASH: str
+
+    TELEGRAM_CHANNEL_BOT_NEWS_NAME: str = 'YNYB News'
+    TELEGRAM_CHANNEL_BOT_NEWS_CHAT_ID: int = -1002015280712
+    TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK: str = 'https://nda.ya.ru/t/8Ve9IRKc79adW7'
+
+    YANDEX_FORM_FEEDBACK_LINK: str = 'https://forms.yandex-team.ru/ext/surveys/13711111/'
+    YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION: str = \
+        'https://forms.yandex-team.ru/ext/surveys/13711111?topic_1=prediction'
+
+    WIKI_BOT_PAGE_LINK: str = 'https://wiki.yandex-team.ru/'
 
     YDB_DATABASE: str
     YDB_ENDPOINT: str

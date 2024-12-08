@@ -1,21 +1,23 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from configs import settings
+
 ikb_welcome_private_chat = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=f'YNYB News',
-                    url='https://nda.ya.ru/t/8Ve9IRKc79adW7'
+                    text=settings.TELEGRAM_CHANNEL_BOT_NEWS_NAME,
+                    url=settings.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK
                 ),
                 InlineKeyboardButton(
-                    text=f'Форма',
-                    url='https://forms.yandex-team.ru/ext/surveys/13711111/'
+                    text='Форма',
+                    url=settings.YANDEX_FORM_FEEDBACK_LINK
                 )
             ],
             [
                 InlineKeyboardButton(
                     text=f'Добавить бота в группу',
-                    url='https://t.me/yandex_new_year_bot?startgroup=sgl'
+                    url='https://t.me/{}?startgroup=sgl'.format(settings.TELEGRAM_BOT_LOGIN)
                 )
             ]
         ]
@@ -26,12 +28,12 @@ ikb_welcome_group_chat = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=f'YNYB News',
-                    url='https://nda.ya.ru/t/8Ve9IRKc79adW7'
+                    text=settings.TELEGRAM_CHANNEL_BOT_NEWS_NAME,
+                    url=settings.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK
                 ),
                 InlineKeyboardButton(
-                    text=f'Форма',
-                    url='https://forms.yandex-team.ru/ext/surveys/13711111/'
+                    text='Форма',
+                    url=settings.YANDEX_FORM_FEEDBACK_LINK
                 )
             ]
         ]

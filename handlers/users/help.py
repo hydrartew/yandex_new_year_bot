@@ -4,6 +4,7 @@ from aiogram.exceptions import TelegramForbiddenError
 from aiogram.filters import Command
 from aiogram.types import Message
 
+from configs import settings
 from filters import GroupChat, PrivateChat, IsSubscribed
 from keyboards.inline import ikb_welcome_private_chat, ikb_welcome_group_chat
 from loader import dp
@@ -14,9 +15,9 @@ flags = {"throttling_key": "help"}
 
 help_text = """
 
-Новостной канал бота - <a href="https://nda.ya.ru/t/8Ve9IRKc79adW7">YNYB News</a>
+Новостной канал бота - <a href="{TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK}">{TELEGRAM_CHANNEL_BOT_NEWS_NAME}</a>
 
-Баг, фичреквест или что-то ещё - заполняй <a href="https://forms.yandex-team.ru/ext/surveys/13711111/">форму</a>
+Баг, фичреквест или что-то ещё - заполняй <a href="{YANDEX_FORM_FEEDBACK_LINK}">форму</a>
 
 <b>🎲 Игры</b>
 
@@ -33,8 +34,13 @@ help_text = """
 <i>Цель игры слепить самого высокого снеговика. Но будьте аккуратны, он может упасть</i>
 
 <blockquote>🔮 <b>Предсказания</b>  /prediction</blockquote>
-<i>Можно использовать 1 раз в 12ч (ты можешь написать свое предсказание через <a href="https://forms.yandex-team.ru/ext/surveys/13711111?topic_1=prediction">форму</a>, оно случайно выпадет кому-то)</i>
-"""
+<i>Можно использовать 1 раз в 12ч (ты можешь написать свое предсказание через <a href="{YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION}">форму</a>, оно случайно выпадет кому-то)</i>
+""".format(
+    TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK=settings.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK,
+    TELEGRAM_CHANNEL_BOT_NEWS_NAME=settings.TELEGRAM_CHANNEL_BOT_NEWS_NAME,
+    YANDEX_FORM_FEEDBACK_LINK=settings.YANDEX_FORM_FEEDBACK_LINK,
+    YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION=settings.YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION
+)
 
 
 @dp.message(Command('help', 'start'), PrivateChat(), IsSubscribed(), flags=flags)
@@ -42,7 +48,8 @@ async def welcome_private_chat(message: Message) -> None:
     global help_text
 
     text = (
-        '{}\n⚠️ В лс отвечаю только на команды /help и /stats\n\n'
+        '{}\n'
+        '⚠️ В лс отвечаю только на команды /help и /stats\n\n'
         '✅ Чтобы начать играть, добавь меня в группу'
     ).format(help_text)
 
