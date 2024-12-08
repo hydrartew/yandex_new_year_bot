@@ -3,7 +3,7 @@ from datetime import datetime
 
 import redis
 
-from configs import snow_duel_config
+from configs import settings
 from db.db_redis.connection import create_redis_client, redis_retry
 from schemas import SnowDuelRoom, SnowDuelUser, WhoMoves, MakeMove, AddOpponentToRoom, SnowDuelUserStats, CancelGame
 
@@ -23,16 +23,16 @@ class SnowDuelDBQueries:
 
         logger.info(f'tg_user_id:{owner_tg_user_id} creating a room {self.hash_name}')
 
-        distance = snow_duel_config.get_random_distance()
+        distance = settings.SnowDuelConfig.get_random_distance()
 
         value = SnowDuelRoom(
             game_status='created',
             owner=SnowDuelUser(
                 tg_user_id=owner_tg_user_id,
                 tg_username=owner_tg_tg_username,
-                hit_chance=snow_duel_config.hit_chance(distance)
+                hit_chance=settings.SnowDuelConfig.hit_chance(distance)
             ),
-            who_moves=snow_duel_config.who_moves_first,
+            who_moves=settings.SnowDuelConfig.who_moves_first(),
             distance=distance,
             dttm_created=datetime.now()
         )
@@ -42,7 +42,7 @@ class SnowDuelDBQueries:
             user_stats = SnowDuelUserStats.model_validate(
                 await r.hgetall(self.user_data_pattern.format(owner_tg_user_id))
             )
-            value.owner.hit_chance += snow_duel_config.user_buff(user_stats.amount)
+            value.owner.hit_chance += settings.SnowDuelConfig.user_buff(user_stats.amount)
 
             await r.set(self.hash_name, value.model_dump_json())
             logger.info(f'The room {self.hash_name} was created successfully')
@@ -93,7 +93,11 @@ class SnowDuelDBQueries:
             user_stats = SnowDuelUserStats.model_validate(
                 await r.hgetall(self.user_data_pattern.format(opponent_tg_user_id))
             )
-            hit_chance = snow_duel_config.hit_chance(room_data.distance) + snow_duel_config.user_buff(user_stats.amount)
+
+            hit_chance = (
+                    settings.SnowDuelConfig.hit_chance(room_data.distance) +
+                    settings.SnowDuelConfig.user_buff(user_stats.amount)
+            )
 
             room_data.opponent = SnowDuelUser(
                 tg_user_id=opponent_tg_user_id,
@@ -161,7 +165,7 @@ class SnowDuelDBQueries:
             current_player.moves += 1
             current_player.dttm_last_move = datetime.now()
 
-            is_hit = snow_duel_config.is_hit(current_player.hit_chance)
+            is_hit = settings.SnowDuelConfig.is_hit(current_player.hit_chance)
             if is_hit:
                 current_player.points += 1
 

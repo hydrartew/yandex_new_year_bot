@@ -1,7 +1,7 @@
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from configs import snow_duel_config
+from configs import settings
 from db import db_redis, db_ydb
 from filters import IsSubscribed
 
@@ -22,7 +22,7 @@ async def my_stats(message: Message) -> None:
         f'❄️🔫 Снежная дуэль:\n'
         f'- выиграно: {game_stats[2].wins} ({game_stats[2].wins_percentage})\n'
         f'- проиграно: {game_stats[2].losses} ({game_stats[2].losses_percentage})\n'
-        f'- бафф: +{snow_duel_config.user_buff(game_stats[2].amount):.2f}%\n\n'
+        f'- бафф: +{settings.SnowDuelConfig.user_buff(game_stats[2].amount):.2f}%\n\n'
         f'☃️ Снеговичок:\n'
         f'- текущий: {game_stats[1].current} см\n'
         f'- самый высокий: {game_stats[1].maximum} см\n'
