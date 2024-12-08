@@ -69,8 +69,11 @@ async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
         database=settings.YDB_DATABASE,
         credentials=credentials_manager.get_credentials()
     ) as driver:
-        await driver.wait(fail_fast=True)
-
+        try:
+            await driver.wait()
+        except Exception as e:
+            logger.error('Error while connecting to YDB: {}'.format(e), exc_info=True)
+            raise
         async with ydb.aio.QuerySessionPool(driver) as _pool:
             try:
                 await _pool.execute_with_retries(
