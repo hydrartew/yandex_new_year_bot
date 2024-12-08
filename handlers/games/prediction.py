@@ -1,6 +1,7 @@
 from aiogram.filters import Command
 from aiogram.types import Message
 
+from configs import settings
 from db import db_ydb
 from filters import GroupChat, IsSubscribed
 from handlers import dp
@@ -18,8 +19,8 @@ async def game_prediction(message: Message) -> None:
 
     if prediction.next_use_is_allowed_after is not None:
         await message.reply(
-            'Предсказание 🔮 можно получить 1 раз в 12ч. Следующее предсказание будет доступно через {}'.format(
-                prediction.next_use_is_allowed_after
+            'Предсказание 🔮 можно получить 1 раз в {}ч. Следующее предсказание будет доступно через {}'.format(
+                settings.PREDICTION_TIMEOUT_IN_HOURS, prediction.next_use_is_allowed_after
             ))
         return
 

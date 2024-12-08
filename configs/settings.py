@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: SecretStr
     REDIS_PORT: int
 
+    PREDICTION_TIMEOUT_IN_HOURS: int = 12
     NIGHT_KING_LOSS_THRESHOLD_TO_GET_ACHIEVEMENT: int = 50
 
     path_ssl_ca_certs: str = f'{BASE_DIR}/configs/.redis/YandexInternalRootCA.crt'

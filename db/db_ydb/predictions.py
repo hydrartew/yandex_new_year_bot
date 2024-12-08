@@ -257,8 +257,10 @@ async def get_prediction(tg_user_id: int) -> GetPrediction:
                 return GetPrediction(error_occurred=True)
 
             time_diff = datetime.now() - tuple_predictions[0].dttm_last_usage
-            if time_diff < timedelta(hours=12):
-                return GetPrediction(next_use_is_allowed_after=timedelta(hours=12) - time_diff)
+            if time_diff < timedelta(hours=settings.PREDICTION_TIMEOUT_IN_HOURS):
+                return GetPrediction(
+                    next_use_is_allowed_after=timedelta(hours=settings.PREDICTION_TIMEOUT_IN_HOURS) - time_diff
+                )
 
             random_prediction = await dbp.select_prediction(pool, get_random_number(
                 range_max=tuple_predictions[1].max_prediction_id,
