@@ -47,8 +47,10 @@ class ThrottlingMiddleware(BaseMiddleware):
         throttling_key = get_flag(data, "throttling_key")
         if throttling_key is not None and throttling_key in self.caches:
             if event.from_user.id in self.caches[throttling_key]:
-                logger.info('tg_user_id:{} blocked for {} seconds by the throttling_key "{}"'.format(
-                    event.from_user.id, self.caches[throttling_key].ttl, throttling_key))
+                logger.debug(
+                    'tg_user_id:{} blocked for {} seconds by the throttling_key "{}"'
+                    .format(event.from_user.id, self.caches[throttling_key].ttl, throttling_key)
+                )
                 return
             self.caches[throttling_key][event.from_user.id] = None
         return await handler(event, data)
