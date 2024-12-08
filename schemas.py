@@ -1,9 +1,20 @@
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Literal
+from typing import Literal, Annotated
 
 from aiogram.enums import ChatMemberStatus
-from pydantic import BaseModel, field_validator, computed_field
+from pydantic import BaseModel, field_validator, computed_field, AfterValidator
+
+
+def percentage_to_float(v: str | float) -> float:
+    if isinstance(v, str):
+        v = float(v.strip('%')) / 100
+    if not (0 <= v <= 1):
+        raise ValueError('Percentage chance must be between 0.00 and 1.00')
+    return v
+
+
+Percentage = Annotated[str | float, AfterValidator(percentage_to_float)]
 
 
 class RandomPrediction(BaseModel):
@@ -86,7 +97,7 @@ class SnowDuelUserStats(BaseModel):
 class SnowDuelUser(BaseModel):
     tg_user_id: int
     tg_username: str
-    hit_chance: float
+    hit_chance: Percentage
     points: int = 0
     moves: int = 0
     dttm_last_move: datetime | None = None
@@ -145,3 +156,53 @@ class ChatMemberUpdatedData(BaseModel):
     from_user_username: str
     chat_member_status: ChatMemberStatus
     utc_dttm_action: datetime
+
+
+class NumberSnowballs(BaseModel):
+    from_: int
+    to: int
+
+
+class SettingsConfigSnow(BaseModel):
+    percentage_chance: Percentage
+    number_snowballs: NumberSnowballs
+
+
+class BottomBound(BaseModel):
+    steps: int
+    hit_chance: Percentage
+
+
+class UpperBound(BottomBound):
+    ...
+
+
+class Distance(BaseModel):
+    bottom_bound: BottomBound
+    upper_bound: UpperBound
+
+
+class ChanceFirstMove(BaseModel):
+    owner: Percentage
+
+    @computed_field
+    @property
+    def opponent(self) -> float:
+        return 1 - self.owner
+
+
+class UserBuff(BaseModel):
+    interval_of_games_played: int
+    increase_hit_chance: Percentage
+    max_increase_hit_chance: Percentage
+
+
+class SettingsConfigSnowDuel(BaseModel):
+    distance: Distance
+    chance_first_move: ChanceFirstMove
+    user_buff: UserBuff
+
+
+class SettingsConfigSnowman(BaseModel):
+    height_increased: int
+    percentage_falling_chance: Percentage
