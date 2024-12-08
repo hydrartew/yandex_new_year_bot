@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime
 
@@ -282,3 +283,27 @@ class SnowDuelDBQueries:
             logger.error(f"Error while getting room: {e}")
         finally:
             await r.aclose()
+
+
+@redis_retry()
+async def get_user_stats(tg_user_id: int, pattern: str = 'tg_user_id:{}:{}') -> SnowDuelUserStats:
+    logger.info('Getting snow_duel stats for tg_user_id:{}'.format(tg_user_id))
+    r = await create_redis_client()
+    try:
+        user_stats = await r.hgetall(pattern.format(tg_user_id, 'snow_duel'))
+
+        if user_stats is not None:
+            logger.info('snow_duel stats for tg_user_id:{} received successfully'.format(tg_user_id))
+        else:
+            logger.warning(f'No snow_duel stats found for tg_user_id: {tg_user_id}')
+
+        return SnowDuelUserStats.model_validate(user_stats)
+
+    except (redis.ConnectionError, redis.TimeoutError) as e:
+        logger.error(f'Error when trying to connect to Redis: {e}')
+        raise
+    except Exception as e:
+        logger.error(f"An unexpected error: {e}")
+        raise
+    finally:
+        await r.aclose()

@@ -32,6 +32,10 @@ class ThrottlingMiddleware(BaseMiddleware):
                 maxsize=10_000,
                 ttl=10
             ),
+            'night_king': TTLCache(
+                maxsize=10_000,
+                ttl=60
+            ),
         }
 
     async def __call__(

@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: SecretStr
     REDIS_PORT: int
 
+    NIGHT_KING_LOSS_THRESHOLD_TO_GET_ACHIEVEMENT: int = 50
+
     path_ssl_ca_certs: str = f'{BASE_DIR}/configs/.redis/YandexInternalRootCA.crt'
 
     class ConfigSnowSecretBox:
