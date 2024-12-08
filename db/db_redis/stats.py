@@ -23,14 +23,11 @@ async def get_stats(tg_user_id: int, pattern: str = 'tg_user_id:{}:{}'
 
             data = await pipe.execute()
 
-    except redis.ConnectionError as e:
-        logger.error(f'Error connecting to Redis: {e}')
-        raise
-    except redis.TimeoutError as e:
-        logger.error(f'Timeout when trying to connect to Redis: {e}')
+    except (redis.ConnectionError, redis.TimeoutError) as e:
+        logger.error(f'Error when trying to connect to Redis: {e}')
         raise
     except Exception as e:
-        logger.critical(f"An unexpected error: {e}")
+        logger.error(f"An unexpected error: {e}")
         raise
     finally:
         await r.aclose()
