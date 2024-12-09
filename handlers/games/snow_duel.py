@@ -32,7 +32,8 @@ async def start_game(message: Message, state: FSMContext) -> None:
 
     send_message = await message.answer(
         text=f'@{message.from_user.username} предлагает сразиться в снежной дуэли ❄️🔫',
-        reply_markup=ikb_start_snow_duel)
+        reply_markup=ikb_start_snow_duel
+    )
 
     await state.set_state(SnowDuelState.in_game)
     await state.update_data(game_room_message_id=send_message.message_id)
@@ -196,22 +197,28 @@ async def check_state(message: Message) -> None:
     )
 
 
+def health_points(tg_username: str, points: int) -> str:
+    return f'@{tg_username}: {"❤️❤️".replace("❤️", "💔", points)}'
+
+
 def hud(_data: SnowDuelRoom,
         finish_game: bool = False,
         cancel_game: bool = False,
         who_canceled_game: str | None = None) -> str:
-    if finish_game:
 
-        winner = f'{_data.owner.tg_username}'
-        if _data.opponent.points >= 2:
-            winner = f'{_data.opponent.tg_username}'
+    base_info = (
+        f'Расстояние: {_data.distance} шагов\n\n'
+        f'Раундов: {_data.current_round}\n\n'
+        f'{health_points(_data.owner.tg_username, _data.owner.points)}\n'
+        f'{health_points(_data.opponent.tg_username, _data.opponent.points)}'
+    )
+
+    if finish_game:
+        winner = _data.owner.tg_username if _data.owner.points >= 2 else _data.opponent.tg_username
 
         return (
             '<blockquote>❄️🔫 Снежная дуэль (завершена)</blockquote>\n'
-            f'Расстояние: {_data.distance} шагов\n\n'
-            f'Раундов: {_data.current_round}\n\n'
-            f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
-            f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
+            f'{base_info}\n\n'
             f'🏆 @{winner} - побеждает'
         )
 
@@ -223,19 +230,13 @@ def hud(_data: SnowDuelRoom,
             )
         return (
             '<blockquote>❄️🔫 Снежная дуэль (отменена)</blockquote>\n'
-            f'Расстояние: {_data.distance} шагов\n\n'
-            f'Раундов: {_data.current_round}\n\n'
-            f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
-            f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
+            f'{base_info}\n\n'
             f'❌ @{who_canceled_game} - отменяет'
         )
 
     return (
         '<blockquote>❄️🔫 Снежная дуэль</blockquote>\n'
-        f'Расстояние: {_data.distance} шагов\n\n'
-        f'Раунд: {_data.current_round}\n\n'
-        f'@{_data.owner.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.opponent.points)}\n'
-        f'@{_data.opponent.tg_username}: {'❤️❤️'.replace('❤️', '💔', _data.owner.points)}\n\n'
+        f'{base_info}\n\n'
     )
 
 
