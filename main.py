@@ -1,5 +1,6 @@
 import asyncio
 
+from db import db_ydb
 from handlers import dp
 
 import logging.config
@@ -7,17 +8,24 @@ import logging.config
 from loader import bot
 from middlewares import ThrottlingMiddleware
 
+logger = logging.getLogger('handlers')
+
+
+def configure_logging():
+    logging.config.fileConfig('logging.ini', disable_existing_loggers=False)
+    logging.getLogger('ydb').setLevel(logging.WARNING)
+    for module in ('db.ydb', 'middleware', 'db.redis', 'handlers', 'aiogram.dispatcher'):
+        logging.getLogger(module).propagate = False
+
 
 async def main() -> None:
-    logging.config.fileConfig('logging.ini', disable_existing_loggers=False)
-    logging.getLogger('db.ydb').propagate = False
-    logging.getLogger('middleware').propagate = False
-    logging.getLogger('db.redis').propagate = False
-    logging.getLogger('handlers').propagate = False
-    logging.getLogger('aiogram.dispatcher').propagate = False
-    logging.getLogger('ydb').setLevel(logging.WARNING)
+    configure_logging()
+    logger.info('Launching the bot')
 
     dp.message.middleware(ThrottlingMiddleware())
+
+    # if not exists
+    # await db_ydb.create_tables_predictions()
 
     try:
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types(), skip_updates=True)
