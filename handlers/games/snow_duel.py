@@ -6,12 +6,12 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.base import StorageKey
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from aiogram.types import Message, CallbackQuery
 
 from db.db_redis import SnowDuelDBQueries
 from filters import GroupChat, IsSubscribed
 from handlers import dp
-from keyboards.inline import ikb_throw
+from keyboards.inline import ikb_throw, ikb_start_snow_duel
 from loader import bot
 from schemas import WhoMoves, SnowDuelRoom, TgUsernamesWhoThrowsAndWhoGets
 
@@ -32,9 +32,7 @@ async def start_game(message: Message, state: FSMContext) -> None:
 
     send_message = await message.answer(
         text=f'@{message.from_user.username} предлагает сразиться в снежной дуэли ❄️🔫',
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
-            text='Принять вызов', callback_data='start_snow_duel')]])
-    )
+        reply_markup=ikb_start_snow_duel)
 
     await state.set_state(SnowDuelState.in_game)
     await state.update_data(game_room_message_id=send_message.message_id)
