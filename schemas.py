@@ -152,6 +152,7 @@ class ChatMemberUpdatedData(BaseModel):
     title: str | None
     from_user_id: int
     from_user_username: str
+    from_user_language_code: str = 'ru'
     chat_member_status: ChatMemberStatus
     utc_dttm_action: datetime
 
