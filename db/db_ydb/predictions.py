@@ -7,6 +7,7 @@ import ydb
 import ydb.iam
 from grpc import StatusCode
 from grpc.aio import AioRpcError
+from ydb import RetrySettings
 
 from configs import settings
 from db.db_ydb.credentials import credentials_manager
@@ -204,7 +205,10 @@ class DBPrediction:
                 ),
                 {
                     '$tg_user_id': (self.tg_user_id, ydb.PrimitiveType.Uint64),
-                }
+                },
+                retry_settings=RetrySettings(
+                    max_retries=3
+                )
             )
             prediction_stats = PredictionStats(
                 written=result_sets[0].rows[0].get('written'),
