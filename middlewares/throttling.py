@@ -39,10 +39,10 @@ class ThrottlingMiddleware(BaseMiddleware):
         }
 
     async def __call__(
-            self,
-            handler: Callable[[Message, dict[str, Any]], Awaitable[Any]],
-            event: Message,
-            data: dict[str, Any]
+        self,
+        handler: Callable[[Message, dict[str, Any]], Awaitable[Any]],
+        event: Message,
+        data: dict[str, Any]
     ) -> Any:
         throttling_key = get_flag(data, "throttling_key")
         if throttling_key is not None and throttling_key in self.caches:
