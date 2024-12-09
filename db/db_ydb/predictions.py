@@ -21,37 +21,6 @@ table_name_predictions = 'predictions'
 table_name_used_predictions = 'used_predictions'
 
 
-def __create_table_used_predictions() -> None:
-    global full_path, table_name_predictions, table_name_used_predictions
-    logger.info(f'Creating table {table_name_used_predictions} if not exists')
-
-    with ydb.Driver(
-            endpoint=settings.YDB_ENDPOINT,
-            database=settings.YDB_DATABASE,
-            credentials=credentials_manager.get_credentials()
-    ) as driver:
-        driver.wait(timeout=5, fail_fast=True)
-        with ydb.QuerySessionPool(driver) as _pool:
-            try:
-                _pool.execute_with_retries(
-                    """
-                    PRAGMA TablePathPrefix("{}");
-                    CREATE TABLE IF NOT EXISTS `{}` (
-                        `tg_user_id` Uint64 NOT NULL,
-                        `prediction_ids` Json NOT NULL,
-                        `usage_times` Json NOT NULL,
-                        `dttm_last_usage` Timestamp NOT NULL,
-                        PRIMARY KEY (`tg_user_id`)
-                    )
-                    """.format(
-                        full_path, table_name_used_predictions
-                    )
-                )
-                logger.info(f'Table {table_name_used_predictions} created successfully')
-            except Exception as e:
-                logger.error(f'Error creating table {table_name_used_predictions}: {e}', exc_info=True)
-
-
 class DBPrediction:
     def __init__(self, tg_user_id: int):
         self.tg_user_id = tg_user_id
@@ -306,3 +275,67 @@ def get_random_number(range_max: int, excluded_numbers: list[int] | None = None)
         random_number = random.randint(0, range_max)
         if excluded_numbers is None or random_number not in excluded_numbers:
             return random_number
+
+
+async def create_table_predictions(_pool: ydb.aio.QuerySessionPool) -> None:
+    logger.info(f'Creating table {table_name_predictions} if not exists')
+
+    try:
+        await _pool.execute_with_retries(
+            """
+            PRAGMA TablePathPrefix("{}");
+            CREATE TABLE IF NOT EXISTS `{}` (
+                `prediction_id` Uint32 NOT NULL,
+                `accepted` Bool NOT NULL,
+                `author_tg_user_id` Uint64 NOT NULL,
+                `author_staff_login` Utf8 NOT NULL,
+                `dttm_created` Timestamp NOT NULL,
+                `dttm_last_usage` Timestamp,
+                `text` Utf8 NOT NULL,
+                `issue_key` Utf8,
+                PRIMARY KEY (`prediction_id`)
+            )
+            """.format(
+                full_path, table_name_predictions
+            )
+        )
+        logger.info(f'Table {table_name_predictions} created successfully')
+    except Exception as e:
+        logger.error(f'Error creating table {table_name_predictions}: {e}', exc_info=True)
+        raise
+
+
+async def create_table_used_predictions(_pool: ydb.aio.QuerySessionPool) -> None:
+    logger.info(f'Creating table {table_name_used_predictions} if not exists')
+    try:
+        await _pool.execute_with_retries(
+            """
+            PRAGMA TablePathPrefix("{}");
+            CREATE TABLE IF NOT EXISTS `{}` (
+                `tg_user_id` Uint64 NOT NULL,
+                `prediction_ids` Json NOT NULL,
+                `usage_times` Json NOT NULL,
+                `dttm_last_usage` Timestamp NOT NULL,
+                PRIMARY KEY (`tg_user_id`)
+            )
+            """.format(
+                full_path, table_name_used_predictions
+            )
+        )
+        logger.info(f'Table {table_name_used_predictions} created successfully')
+    except Exception as e:
+        logger.error(f'Error creating table {table_name_used_predictions}: {e}', exc_info=True)
+        raise
+
+
+async def create_tables_predictions() -> None:
+    async with ydb.aio.Driver(
+            endpoint=settings.YDB_ENDPOINT,
+            database=settings.YDB_DATABASE,
+            credentials=credentials_manager.get_credentials()
+    ) as driver:
+        await driver.wait(timeout=7, fail_fast=True)
+
+        async with ydb.aio.QuerySessionPool(driver) as pool:
+            await create_table_predictions(pool)
+            await create_table_used_predictions(pool)
