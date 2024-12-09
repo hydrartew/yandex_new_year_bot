@@ -7,12 +7,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.base import StorageKey
 from aiogram.types import Message, CallbackQuery
+from aiogram_i18n import I18nContext
 
 from db.db_redis import SnowDuelDBQueries
 from filters import GroupChat, IsSubscribed
 from handlers import dp
 from keyboards.inline import ikb_throw, ikb_start_snow_duel
 from loader import bot
+from localization import Localization
 from schemas import WhoMoves, SnowDuelRoom, TgUsernamesWhoThrowsAndWhoGets
 
 logger = logging.getLogger('handlers')
@@ -25,13 +27,15 @@ class SnowDuelState(StatesGroup):
 
 
 @dp.message(Command('snow_duel'), GroupChat(), IsSubscribed(), flags=flags)
-async def start_game(message: Message, state: FSMContext) -> None:
+async def start_game(message: Message, state: FSMContext, i18n: I18nContext) -> None:
+    localization = Localization(message, i18n)
+
     if await state.get_state() is not None:
-        await message.reply('Ты уже участвуешь в дуэли, если хочешь отменить её, пропиши команду /cancel_snow_duel')
+        await message.reply(localization.get('snow-duel-already-in-duel'))
         return
 
     send_message = await message.answer(
-        text=f'@{message.from_user.username} предлагает сразиться в снежной дуэли ❄️🔫',
+        text=localization.get('snow-duel-start', tg_username=message.from_user.username),
         reply_markup=ikb_start_snow_duel
     )
 
@@ -48,10 +52,12 @@ async def start_game(message: Message, state: FSMContext) -> None:
 
 
 @dp.callback_query(F.data == 'start_snow_duel', IsSubscribed())
-async def join_the_game(call: CallbackQuery, state: FSMContext):
+async def join_the_game(call: CallbackQuery, state: FSMContext, i18n: I18nContext) -> None:
+    localization = Localization(call, i18n)
+
     if await state.get_state() is not None:
         await call.answer(
-            'Ты уже участвуешь в дуэли, если хочешь отменить её, напиши /cancel_snow_duel',
+            text=localization.get('snow-duel-already-in-duel'),
             show_alert=True,
             cache_time=3
         )
@@ -69,15 +75,15 @@ async def join_the_game(call: CallbackQuery, state: FSMContext):
     )
 
     if not _data.room_exists:
-        await call.answer('Дуэль уже закончилась или не существует', show_alert=True, cache_time=120)
+        await call.answer(localization.get('snow-duel-not-room-exists'), show_alert=True, cache_time=120)
         return
 
     if _data.room_already_has_opponent:
-        await call.answer('Ты не участвуешь в этой дэули', show_alert=True, cache_time=120)
+        await call.answer(localization.get('snow-duel-room-already-has-opponent'), show_alert=True, cache_time=120)
         return
 
     if _data.user_is_owner_already_in_room:
-        await call.answer('Ты уже участвуешь в этой дуэли', show_alert=True, cache_time=20)
+        await call.answer(localization.get('snow-duel-user-is-owner-already-in-room'), show_alert=True, cache_time=20)
         return
 
     who = tg_usernames_who_throws_and_who_gets(_data.snow_duel_data)
@@ -89,7 +95,9 @@ async def join_the_game(call: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(F.data == 'throw_snowball', SnowDuelState.in_game, IsSubscribed())
-async def throw_snowball(call: CallbackQuery, state: FSMContext):
+async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nContext) -> None:
+    localization = Localization(call, i18n)
+
     _data = await SnowDuelDBQueries(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id
@@ -98,15 +106,15 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext):
     )
 
     if not _data.user_in_room:
-        await call.answer('Ты не участвуешь в этой дэули', show_alert=True, cache_time=120)
+        await call.answer(localization.get('snow-duel-room-already-has-opponent'), show_alert=True, cache_time=120)
         return
 
     if not _data.is_current_user_move:
-        await call.answer('Сейчас не твой бросок', show_alert=True, cache_time=3)
+        await call.answer(localization.get('snow-duel-is-current-user-move'), show_alert=True, cache_time=3)
         return
 
     if not _data.room_exists:
-        await call.answer('Дуэль уже состоялась или не существует', show_alert=True, cache_time=120)
+        await call.answer(localization.get('snow-duel-not-room-exists'), show_alert=True, cache_time=120)
         return
 
     footer = f'🔛 @{call.from_user.username} - мимо 💨'
@@ -146,7 +154,9 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext):
 
 @dp.message(Command("cancel_snow_duel"), IsSubscribed(), flags=flags)
 @dp.message(F.text.casefold() == "cancel_snow_duel", IsSubscribed(), flags=flags)
-async def cancel_handler(message: Message, state: FSMContext) -> None:
+async def cancel_handler(message: Message, state: FSMContext, i18n: I18nContext) -> None:
+    localization = Localization(message, i18n)
+
     if await state.get_state() is None:
         return
 
@@ -162,7 +172,7 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
 
     if _data is None:
         await state.clear()
-        await message.reply("Дуэль отменена")
+        await message.reply(localization.get('snow-duel-cancel'))
         return
 
     await state.clear()  # для initiator_tg_user_id, т.е. для message.from_user.id
@@ -184,17 +194,15 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
         chat_id=message.chat.id,
         message_id=game_room_message_id
     )
-    await message.answer("Дуэль отменена", reply_to_message_id=game_room_message_id)
+    await message.answer(localization.get('snow-duel-cancel'), reply_to_message_id=game_room_message_id)
 
 
 @dp.message(
     Command('snow', 'snow_duel', 'snowman', 'quiz'), GroupChat(), SnowDuelState.in_game, IsSubscribed(), flags=flags
 )
-async def check_state(message: Message) -> None:
-    await message.reply(
-        'Нельзя выполнить это действие, пока ты участвуешь в дуэли. '
-        'Если хочешь её отменить, вызови команду /cancel_snow_duel'
-    )
+async def check_state(message: Message, i18n: I18nContext) -> None:
+    localization = Localization(message, i18n)
+    await message.reply(localization.get('snow-duel-check-state'))
 
 
 def health_points(_data: SnowDuelRoom) -> str:
