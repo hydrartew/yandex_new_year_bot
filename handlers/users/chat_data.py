@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from aiogram.filters import ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
 from aiogram.types import ChatMemberUpdated
-from icecream import ic
 
 from db.db_ydb import upsert_chat_data
 from filters import IsBlocked
@@ -13,8 +12,6 @@ from schemas import ChatMemberUpdatedData
 @dp.my_chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER), IsBlocked())
 @dp.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER), IsBlocked())
 async def update_chat_data(event: ChatMemberUpdated):
-    for i in event:
-        ic(i)
     await upsert_chat_data(
         ChatMemberUpdatedData(
             chat_id=event.chat.id,
