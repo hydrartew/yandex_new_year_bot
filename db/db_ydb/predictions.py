@@ -165,7 +165,7 @@ class DBPrediction:
                 FROM `{}` 
                 WHERE tg_user_id == $tg_user_id;
                 """.format(
-                    self.full_path, self.table_name_predictions, self.table_name_used_predictions
+                    self.full_path, self.table_name_used_predictions
                 ),
                 {
                     '$tg_user_id': (self.tg_user_id, ydb.PrimitiveType.Uint64),
