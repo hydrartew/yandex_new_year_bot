@@ -151,7 +151,7 @@ class DBPrediction:
 
     async def get_stats(self, _pool: ydb.aio.QuerySessionPool) -> PredictionStats:
 
-        logger.info('Trying to get prediction stats for tg_user_id:{}'.format(self.tg_user_id))
+        logger.info('Trying to get number of predictions received for tg_user_id:{}'.format(self.tg_user_id))
 
         try:
             result_sets = await _pool.execute_with_retries(
@@ -160,11 +160,6 @@ class DBPrediction:
 
                 DECLARE $tg_user_id AS Uint64;
 
-                SELECT 
-                    COUNT(author_tg_user_id) AS written 
-                FROM `{}` 
-                WHERE author_tg_user_id == $tg_user_id;
-                
                 SELECT 
                     ListLength(Json::ConvertToList(prediction_ids)) AS received 
                 FROM `{}` 
@@ -179,15 +174,8 @@ class DBPrediction:
                     max_retries=3
                 )
             )
-            prediction_stats = PredictionStats(
-                written=result_sets[0].rows[0].get('written'),
-                received=result_sets[1].rows[0].get('received')
-            )
-            logger.info(
-                'Prediction stats for tg_user_id:{} received successfully: {}'
-                .format(self.tg_user_id, repr(prediction_stats))
-            )
-            return prediction_stats
+            logger.info('Prediction stats for tg_user_id:{} received successfully'.format(self.tg_user_id))
+            return PredictionStats(received=result_sets[0].rows[0].get('received'))
 
         except AioRpcError as err:
             if err.code() == StatusCode.RESOURCE_EXHAUSTED:
@@ -287,10 +275,8 @@ async def create_table_predictions(_pool: ydb.aio.QuerySessionPool) -> None:
             CREATE TABLE IF NOT EXISTS `{}` (
                 `prediction_id` Uint32 NOT NULL,
                 `accepted` Bool NOT NULL,
-                `author_tg_user_id` Uint64 NOT NULL,
                 `author_staff_login` Utf8 NOT NULL,
                 `dttm_created` Timestamp NOT NULL,
-                `dttm_last_usage` Timestamp,
                 `text` Utf8 NOT NULL,
                 `issue_key` Utf8,
                 PRIMARY KEY (`prediction_id`)

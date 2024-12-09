@@ -28,6 +28,5 @@ async def my_stats(message: Message) -> None:
         f'- самый высокий: {game_stats[1].maximum} см\n'
         f'- попыток слепить: {game_stats[1].all_attempts} шт\n\n'
         f'🔮 Предсказания:\n'
-        f'- написано: {prediction_stats.written}\n'
         f'- получено: {prediction_stats.received}\n\n'
     )

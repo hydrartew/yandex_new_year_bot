@@ -49,11 +49,9 @@ class GetPrediction(BaseModel):
 
 
 class PredictionStats(BaseModel):
-    written: int | None = None
     received: int | None = None
 
     def model_post_init(self, __context):
-        self.written = 'N/A' if not self.written else self.written
         self.received = 'N/A' if not self.received else self.received
 
 
