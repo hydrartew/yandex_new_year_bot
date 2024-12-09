@@ -18,7 +18,7 @@ full_path: str = '{}/ynyb/chat_data/'.format(settings.YDB_DATABASE.removeprefix(
 table_name = 'chats'
 
 
-async def create_table() -> None:
+async def create_table_chat_data() -> None:
     logger.info(f'Creating table {table_name} if not exists')
 
     async with ydb.aio.Driver(
@@ -50,6 +50,7 @@ async def create_table() -> None:
                 logger.info(f'Table {table_name} created successfully')
             except Exception as e:
                 logger.error(f'Error creating table {table_name}: {e}', exc_info=True)
+                raise
 
 
 @retry(
@@ -132,11 +133,3 @@ async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
                     'Error while upsert UPSERT `{}` with data {}: {}'.format(table_name, repr(data), e), exc_info=True
                 )
                 raise
-
-
-async def main():
-    await create_table()
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())

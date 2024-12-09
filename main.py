@@ -25,6 +25,7 @@ async def main() -> None:
     dp.message.middleware(ThrottlingMiddleware())
 
     # if not exists
+    # await db_ydb.create_table_chat_data()
     # await db_ydb.create_tables_predictions()
 
     try:
