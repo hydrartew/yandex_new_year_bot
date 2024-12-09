@@ -32,10 +32,7 @@ async def main() -> None:
     configure_logging()
     logger.info('Launching the bot')
 
-    mw = I18nMiddleware(
-        core=FluentRuntimeCore(path="locales/{locale}/LC_MESSAGES"),
-        default_locale='ru'
-    )
+    mw = I18nMiddleware(core=FluentRuntimeCore(path="locales/{locale}/LC_MESSAGES"))
     mw.setup(dispatcher=dp)
 
     dp.message.middleware(ThrottlingMiddleware())
