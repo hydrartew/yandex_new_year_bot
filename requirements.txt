@@ -10,3 +10,4 @@ tenacity==9.0.0
 icecream==2.1.3
 Telethon==1.38.1
 grpcio==1.67.1
+aiogram-i18n==1.4
