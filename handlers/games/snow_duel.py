@@ -197,8 +197,12 @@ async def check_state(message: Message) -> None:
     )
 
 
-def health_points(tg_username: str, points: int) -> str:
-    return f'@{tg_username}: {"❤️❤️".replace("❤️", "💔", points)}'
+def health_points(_data: SnowDuelRoom) -> str:
+    text = f'@{_data.owner.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.owner.points)}'
+    if _data.opponent is not None:
+        text += f'\n@{_data.opponent.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.opponent.points)}'
+
+    return text
 
 
 def hud(_data: SnowDuelRoom,
@@ -209,8 +213,7 @@ def hud(_data: SnowDuelRoom,
     base_info = (
         f'Расстояние: {_data.distance} шагов\n\n'
         f'Раундов: {_data.current_round}\n\n'
-        f'{health_points(_data.owner.tg_username, _data.owner.points)}\n'
-        f'{health_points(_data.opponent.tg_username, _data.opponent.points)}'
+        f'{health_points(_data)}'
     )
 
     if finish_game:
