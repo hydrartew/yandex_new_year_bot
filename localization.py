@@ -1,11 +1,11 @@
 from typing import Any
 
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram_i18n import I18nContext
 
 
 class Localization:
-    def __init__(self, message: Message, i18n: I18nContext):
+    def __init__(self, message: Message | CallbackQuery, i18n: I18nContext):
         self.language_code = message.from_user.language_code
 
         if self.language_code not in i18n.core.available_locales:
