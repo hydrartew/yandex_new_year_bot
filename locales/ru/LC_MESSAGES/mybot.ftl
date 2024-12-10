@@ -95,14 +95,23 @@ snow-duel-user-is-owner-already-in-room = Ты уже участвуешь в э
 
 snow-duel-is-current-user-move = Сейчас не твой бросок
 
-snow-duel-cancel = Дуэль отменена
+snow-duel-cancelled = Дуэль отменена
 
 snow-duel-check-state = Нельзя выполнить это действие, пока ты участвуешь в дуэли. Если хочешь её отменить, вызови команду /cancel_snow_duel
 
+snow-duel-base-info = 
+    Расстояние: { $distance } шагов
+
+    Раундов: { $rounds }
+
+    { $health_points_data }
+
 snow-duel-title = ❄️🔫 Снежная дуэль
-snow-duel-distance = Расстояние: { $distance } шагов
-snow-duel-rounds = Раундов: { $rounds }
-snow-duel-finished = { snow-duel-title } (завершена)
-snow-duel-canceled = { snow-duel-title } (отменена)
+snow-duel-title-blockquote = <blockquote>{ snow-duel-title }</blockquote>
+snow-duel-finished = <blockquote>{ snow-duel-title } (завершена)</blockquote>
+snow-duel-cancelled-2 = <blockquote>{ snow-duel-title } (отменена)</blockquote>
 snow-duel-winner = 🏆 @{ $tg_username } - побеждает
-snow-duel-cancelled = ❌ @{ $tg_username } - отменяет
+snow-duel-cancels = ❌ @{ $tg_username } - отменяет
+snow-duel-throws = 🔛 @{ $tg_username } - бросает
+snow-duel-away =  🔛 @{ $tg_username } - мимо 💨
+snow-duel-hit =  🔛 @{ $tg_username } - попал(а) 🎯

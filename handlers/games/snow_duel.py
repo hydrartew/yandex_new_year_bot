@@ -89,7 +89,7 @@ async def join_the_game(call: CallbackQuery, state: FSMContext, i18n: I18nContex
     who = tg_usernames_who_throws_and_who_gets(_data.snow_duel_data)
 
     await call.message.edit_text(
-        text=hud(_data.snow_duel_data) + f'🔛 @{who.throw} - бросает',
+        text=hud(_data.snow_duel_data, localization) + localization.get('snow-duel-throws', tg_username=who.throw),
         reply_markup=ikb_throw
     )
 
@@ -117,15 +117,15 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
         await call.answer(localization.get('snow-duel-not-room-exists'), show_alert=True, cache_time=120)
         return
 
-    footer = f'🔛 @{call.from_user.username} - мимо 💨'
+    footer = localization.get('snow-duel-away', tg_username=call.from_user.username)
     if _data.is_hit:
-        footer = f'🔛 @{call.from_user.username} - попал(а) 🎯'
+        footer = localization.get('snow-duel-hit', tg_username=call.from_user.username)
 
-    await call.message.edit_text(hud(_data.snow_duel_data) + footer)
+    await call.message.edit_text(hud(_data.snow_duel_data, localization) + footer)
     await asyncio.sleep(3)
 
     if _data.snow_duel_data.game_status == 'finished':
-        await call.message.edit_text(hud(_data.snow_duel_data, finish_game=True))
+        await call.message.edit_text(hud(_data.snow_duel_data, localization, finish_game=True))
 
         if call.from_user.id == _data.snow_duel_data.owner.tg_user_id:
             another_user_id = _data.snow_duel_data.opponent.tg_user_id
@@ -147,7 +147,7 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
     who = tg_usernames_who_throws_and_who_gets(_data.snow_duel_data)
 
     await call.message.edit_text(
-        text=hud(_data.snow_duel_data) + f'🔛 @{who.throw} - бросает',
+        text=hud(_data.snow_duel_data, localization) + localization.get('snow-duel-throws', tg_username=who.throw),
         reply_markup=ikb_throw
     )
 
@@ -172,7 +172,7 @@ async def cancel_handler(message: Message, state: FSMContext, i18n: I18nContext)
 
     if _data is None:
         await state.clear()
-        await message.reply(localization.get('snow-duel-cancel'))
+        await message.reply(localization.get('snow-duel-cancelled'))
         return
 
     await state.clear()  # для initiator_tg_user_id, т.е. для message.from_user.id
@@ -188,13 +188,14 @@ async def cancel_handler(message: Message, state: FSMContext, i18n: I18nContext)
     await bot.edit_message_text(
         hud(
             _data.snow_duel_data,
+            localization,
             cancel_game=True,
             who_canceled_game=message.from_user.username
         ),
         chat_id=message.chat.id,
         message_id=game_room_message_id
     )
-    await message.answer(localization.get('snow-duel-cancel'), reply_to_message_id=game_room_message_id)
+    await message.answer(localization.get('snow-duel-cancelled'), reply_to_message_id=game_room_message_id)
 
 
 @dp.message(
@@ -214,39 +215,41 @@ def health_points(_data: SnowDuelRoom) -> str:
 
 
 def hud(_data: SnowDuelRoom,
+        localization: Localization,
         finish_game: bool = False,
         cancel_game: bool = False,
         who_canceled_game: str | None = None) -> str:
 
-    base_info = (
-        f'Расстояние: {_data.distance} шагов\n\n'
-        f'Раундов: {_data.current_round}\n\n'
-        f'{health_points(_data)}'
+    base_info = localization.get(
+        'snow-duel-base-info',
+        distance=_data.distance,
+        rounds=_data.current_round,
+        health_points_data=health_points(_data)
     )
 
     if finish_game:
         winner = _data.owner.tg_username if _data.owner.points >= 2 else _data.opponent.tg_username
 
         return (
-            '<blockquote>❄️🔫 Снежная дуэль (завершена)</blockquote>\n'
+            f'{localization.get("snow-duel-finished")}\n'
             f'{base_info}\n\n'
-            f'🏆 @{winner} - побеждает'
+            f'{localization.get("snow-duel-winner", tg_username=winner)}'
         )
 
     if cancel_game:
         if _data.opponent is None:
             return (
-                f'@{_data.owner.tg_username} предлагает сразиться в снежной дуэли ❄️🔫\n\n'
-                f'Дуэль отменена'
+                f'{localization.get("snow-duel-start", tg_username=_data.owner.tg_username)}\n\n'
+                f'{localization.get("snow-duel-cancelled")}'
             )
         return (
-            '<blockquote>❄️🔫 Снежная дуэль (отменена)</blockquote>\n'
+            f'{localization.get("snow-duel-cancelled-2")}\n'
             f'{base_info}\n\n'
-            f'❌ @{who_canceled_game} - отменяет'
+            f'{localization.get("snow-duel-cancels", tg_username=who_canceled_game)}'
         )
 
     return (
-        '<blockquote>❄️🔫 Снежная дуэль</blockquote>\n'
+        f'{localization.get("snow-duel-title-blockquote")}\n'
         f'{base_info}\n\n'
     )
 
