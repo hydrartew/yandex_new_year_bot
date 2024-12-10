@@ -110,8 +110,12 @@ snow-duel-title = ❄️🔫 Снежная дуэль
 snow-duel-title-blockquote = <blockquote>{ snow-duel-title }</blockquote>
 snow-duel-finished = <blockquote>{ snow-duel-title } (завершена)</blockquote>
 snow-duel-cancelled-2 = <blockquote>{ snow-duel-title } (отменена)</blockquote>
+
 snow-duel-winner = 🏆 @{ $tg_username } - побеждает
 snow-duel-cancels = ❌ @{ $tg_username } - отменяет
 snow-duel-throws = 🔛 @{ $tg_username } - бросает
 snow-duel-away =  🔛 @{ $tg_username } - мимо 💨
 snow-duel-hit =  🔛 @{ $tg_username } - попал(а) 🎯
+
+sub-msg = Для участия в новогоднем ивенте ✨ нужно подписаться на канал { $channel }
+sub-alert = { sub-msg }, вызови любую команду, там будет ссылка
