@@ -57,14 +57,13 @@ snowball-in-bot = @{ $tg_username } бросил(а) снежок ❄️ в @{ $
 
 snowball-at-myself = @{ $tg_username } бросил(а) снежок ❄️ в себя
 
-snowball-throw = @{ $tg_username } бросил(а) снежок в @{ $to_tg_username }
+snowball-throw = @{ $tg_username } бросил(а) снежок ❄️ в @{ $to_tg_username }
 
 snowball-is-secret-box = 
     @{ $tg_username } получил(а) подарок 🎁, в котором { $number_snowballs ->
         [one] оказался { $number_snowballs } снежок
         [few] оказалось { $number_snowballs } снежка
        *[many] оказалось { $number_snowballs } снежков
-
     } ❄️
 
 snowman-bad-request = 
