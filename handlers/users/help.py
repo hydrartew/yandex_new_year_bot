@@ -40,9 +40,9 @@ async def send_help_message(message: Message, i18n: I18nContext, reply_markup: I
 
 @dp.message(Command('help', 'start'), PrivateChat(), IsSubscribed(), flags=flags)
 async def welcome_private_chat(message: Message, i18n: I18nContext) -> None:
-    await send_help_message(message, i18n, ikb_welcome_private_chat, 'true')
+    await send_help_message(message, i18n, ikb_welcome_private_chat(Localization(message, i18n)), 'true')
 
 
 @dp.message(Command('help', 'start'), GroupChat(), IsSubscribed(), flags=flags)
 async def welcome_group_chat(message: Message, i18n: I18nContext) -> None:
-    await send_help_message(message, i18n, ikb_welcome_group_chat)
+    await send_help_message(message, i18n, ikb_welcome_group_chat(Localization(message, i18n)))

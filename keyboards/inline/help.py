@@ -1,8 +1,11 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from configs import settings
+from localization import Localization
 
-ikb_welcome_private_chat = InlineKeyboardMarkup(
+
+def ikb_welcome_private_chat(localization: Localization):
+    return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
@@ -10,13 +13,13 @@ ikb_welcome_private_chat = InlineKeyboardMarkup(
                     url=settings.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK
                 ),
                 InlineKeyboardButton(
-                    text='Форма',
+                    text=localization.get('form'),
                     url=settings.YANDEX_FORM_FEEDBACK_LINK
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=f'Добавить бота в группу',
+                    text=localization.get('add-bot-to-group'),
                     url='https://t.me/{}?startgroup=sgl'.format(settings.TELEGRAM_BOT_LOGIN)
                 )
             ]
@@ -24,7 +27,8 @@ ikb_welcome_private_chat = InlineKeyboardMarkup(
     )
 
 
-ikb_welcome_group_chat = InlineKeyboardMarkup(
+def ikb_welcome_group_chat(localization: Localization):
+    return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
@@ -32,7 +36,7 @@ ikb_welcome_group_chat = InlineKeyboardMarkup(
                     url=settings.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK
                 ),
                 InlineKeyboardButton(
-                    text='Форма',
+                    text=localization.get('form'),
                     url=settings.YANDEX_FORM_FEEDBACK_LINK
                 )
             ]

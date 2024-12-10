@@ -36,7 +36,7 @@ async def start_game(message: Message, state: FSMContext, i18n: I18nContext) -> 
 
     send_message = await message.answer(
         text=localization.get('snow-duel-start', tg_username=message.from_user.username),
-        reply_markup=ikb_start_snow_duel
+        reply_markup=ikb_start_snow_duel(localization)
     )
 
     await state.set_state(SnowDuelState.in_game)
@@ -90,7 +90,7 @@ async def join_the_game(call: CallbackQuery, state: FSMContext, i18n: I18nContex
 
     await call.message.edit_text(
         text=hud(_data.snow_duel_data, localization) + localization.get('snow-duel-throws', tg_username=who.throw),
-        reply_markup=ikb_throw
+        reply_markup=ikb_throw(localization)
     )
 
 
@@ -148,7 +148,7 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
 
     await call.message.edit_text(
         text=hud(_data.snow_duel_data, localization) + localization.get('snow-duel-throws', tg_username=who.throw),
-        reply_markup=ikb_throw
+        reply_markup=ikb_throw(localization)
     )
 
 

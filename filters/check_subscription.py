@@ -27,11 +27,14 @@ class IsSubscribed(BaseFilter):
             return False
 
         if sub.status == ChatMemberStatus.LEFT:
+            logger.info(
+                'tg_user_id:{} - new user w/o subscribe, chat_id:{}'.format(message.from_user.id, message.chat.id)
+            )
             if isinstance(message, Message):
                 try:
                     await message.reply(
                         localization.get('sub-msg', channel=settings.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_HYPERLINK),
-                        reply_markup=ikb_subscription
+                        reply_markup=ikb_subscription(localization)
                     )
                 except TelegramForbiddenError:
                     logger.warning(
