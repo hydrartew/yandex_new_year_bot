@@ -7,6 +7,7 @@ import ydb
 import ydb.iam
 from grpc import StatusCode
 from grpc.aio import AioRpcError
+from icecream import ic
 from ydb import RetrySettings
 
 from configs import settings
@@ -222,7 +223,8 @@ async def get_prediction(tg_user_id: int) -> GetPrediction:
                 return GetPrediction(
                     next_use_is_allowed_after=timedelta(hours=settings.PREDICTION_TIMEOUT_IN_HOURS) - time_diff
                 )
-
+            ic(tuple_predictions[1].max_prediction_id)
+            ic(tuple_predictions[0].prediction_ids)
             random_prediction = await dbp.select_prediction(pool, get_random_number(
                 range_max=tuple_predictions[1].max_prediction_id,
                 excluded_numbers=tuple_predictions[0].prediction_ids
@@ -258,11 +260,32 @@ async def get_prediction_stats(tg_user_id: int) -> PredictionStats:
             return await dbp.get_stats(pool)
 
 
-def get_random_number(range_max: int, excluded_numbers: list[int] | None = None):
-    while True:
-        random_number = random.randint(0, range_max)
-        if excluded_numbers is None or random_number not in excluded_numbers:
-            return random_number
+def get_random_number(range_max: int, excluded_numbers: list[int] | None = None) -> int | None:
+    a, list_random_nums = 0, []
+    if excluded_numbers is None:
+        excluded_numbers = [range_max]
+
+    excluded_numbers.sort()
+
+    for b in excluded_numbers:
+        if b - a <= 1:
+            a = b
+            continue
+
+        randint_a = a if a not in excluded_numbers else a + 1
+        randint_b = min(b, range_max) if min(b, range_max) not in excluded_numbers else min(b, range_max) - 1
+
+        if randint_a > randint_b:
+            break
+
+        list_random_nums.append(random.randint(randint_a, randint_b))
+        a = b
+
+    if len(list_random_nums) != 0:
+        print(list_random_nums)
+        return random.choice(list_random_nums)
+
+    return None
 
 
 async def create_table_predictions(_pool: ydb.aio.QuerySessionPool) -> None:
