@@ -27,7 +27,13 @@ class ThrottlingMiddleware(BaseMiddleware):
             'snow': TTLCache(
                 ttl=1.5, maxsize=10_000
             ),
-            'snow_duel': TTLCache(
+            'snow_duel_start': TTLCache(
+                ttl=3, maxsize=10_000
+            ),
+            'snow_duel_cancel': TTLCache(
+                ttl=3, maxsize=10_000
+            ),
+            'snow_duel_in_game': TTLCache(
                 ttl=3, maxsize=10_000
             ),
             'snowman': TTLCache(

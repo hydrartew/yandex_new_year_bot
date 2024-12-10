@@ -19,14 +19,12 @@ from schemas import WhoMoves, SnowDuelRoom, TgUsernamesWhoThrowsAndWhoGets
 
 logger = logging.getLogger('handlers')
 
-flags = {"throttling_key": "snow_duel"}
-
 
 class SnowDuelState(StatesGroup):
     in_game = State()
 
 
-@dp.message(Command('snow_duel'), GroupChat(), IsSubscribed(), flags=flags)
+@dp.message(Command('snow_duel'), GroupChat(), IsSubscribed(), flags={"throttling_key": "snow_duel_start"})
 async def start_game(message: Message, state: FSMContext, i18n: I18nContext) -> None:
     localization = Localization(message, i18n)
 
@@ -152,8 +150,8 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
     )
 
 
-@dp.message(Command("cancel_snow_duel"), IsSubscribed(), flags=flags)
-@dp.message(F.text.casefold() == "cancel_snow_duel", IsSubscribed(), flags=flags)
+@dp.message(Command("cancel_snow_duel"), IsSubscribed(), flags={"throttling_key": "snow_duel_cancel"})
+@dp.message(F.text.casefold() == "cancel_snow_duel", IsSubscribed(), flags={"throttling_key": "snow_duel_cancel"})
 async def cancel_handler(message: Message, state: FSMContext, i18n: I18nContext) -> None:
     localization = Localization(message, i18n)
 
@@ -199,7 +197,11 @@ async def cancel_handler(message: Message, state: FSMContext, i18n: I18nContext)
 
 
 @dp.message(
-    Command('snow', 'snow_duel', 'snowman', 'quiz'), GroupChat(), SnowDuelState.in_game, IsSubscribed(), flags=flags
+    Command('snow', 'snow_duel', 'snowman', 'quiz'),
+    GroupChat(),
+    SnowDuelState.in_game,
+    IsSubscribed(),
+    flags={"throttling_key": "snow_duel_in_game"}
 )
 async def check_state(message: Message, i18n: I18nContext) -> None:
     localization = Localization(message, i18n)
@@ -219,7 +221,6 @@ def hud(_data: SnowDuelRoom,
         finish_game: bool = False,
         cancel_game: bool = False,
         who_canceled_game: str | None = None) -> str:
-
     base_info = localization.get(
         'snow-duel-base-info',
         distance=_data.distance,
