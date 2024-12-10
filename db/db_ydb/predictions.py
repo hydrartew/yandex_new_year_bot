@@ -282,7 +282,6 @@ def get_random_number(range_max: int, excluded_numbers: list[int] | None = None)
         a = b
 
     if len(list_random_nums) != 0:
-        print(list_random_nums)
         return random.choice(list_random_nums)
 
     return None
