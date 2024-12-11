@@ -19,4 +19,4 @@ RUN apt-get update && \
          --output-document ${PATH_REDIS_CRT}/YandexInternalRootCA.crt && \
     chmod 0655 ${PATH_REDIS_CRT}/YandexInternalRootCA.crt
 
-CMD ["sh", "-c", "ls -R /app && python main.py"]
+CMD ["python", "-m", "main"]
