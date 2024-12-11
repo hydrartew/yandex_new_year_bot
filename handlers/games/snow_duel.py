@@ -209,9 +209,9 @@ async def check_state(message: Message, i18n: I18nContext) -> None:
 
 
 def health_points(_data: SnowDuelRoom) -> str:
-    text = f'@{_data.owner.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.owner.points)}'
+    text = f'@{_data.owner.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.opponent.points)}'
     if _data.opponent is not None:
-        text += f'\n@{_data.opponent.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.opponent.points)}'
+        text += f'\n@{_data.opponent.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.owner.points)}'
 
     return text
 
