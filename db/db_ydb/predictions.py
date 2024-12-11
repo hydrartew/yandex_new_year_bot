@@ -7,7 +7,6 @@ import ydb
 import ydb.iam
 from grpc import StatusCode
 from grpc.aio import AioRpcError
-from icecream import ic
 from ydb import RetrySettings
 
 from configs import settings
