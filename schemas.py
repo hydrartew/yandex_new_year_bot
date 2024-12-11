@@ -26,7 +26,7 @@ class DataUsedPredictions(BaseModel):
     tg_user_id: int
     prediction_ids: list[int] = []
     usage_times: list[str] = []
-    dttm_last_usage: datetime = datetime.now()
+    dttm_last_usage: datetime | None
 
 
 class DataMaxPredictionId(BaseModel):

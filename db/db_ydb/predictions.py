@@ -115,7 +115,7 @@ class DBPrediction:
             logger.info(f'Used predictions for tg_user_id {self.tg_user_id} received successfully')
             data_used_predictions = DataUsedPredictions.model_validate(result_sets[0].rows[0])
         else:
-            data_used_predictions = DataUsedPredictions(tg_user_id=self.tg_user_id)
+            data_used_predictions = DataUsedPredictions(tg_user_id=self.tg_user_id, dttm_last_usage=None)
             logger.info(f'No used predictions for tg_user_id {self.tg_user_id}')
 
         return data_used_predictions, DataMaxPredictionId.model_validate(result_sets[1].rows[0])
@@ -218,11 +218,12 @@ async def get_prediction(tg_user_id: int) -> GetPrediction:
             if tuple_predictions is None:
                 return GetPrediction(error_occurred=True)
 
-            time_diff = datetime.now() - tuple_predictions[0].dttm_last_usage
-            if time_diff < timedelta(hours=settings.PREDICTION_TIMEOUT_IN_HOURS):
-                return GetPrediction(
-                    next_use_is_allowed_after=timedelta(hours=settings.PREDICTION_TIMEOUT_IN_HOURS) - time_diff
-                )
+            if tuple_predictions[0].dttm_last_usage is not None:
+                time_diff = datetime.now() - tuple_predictions[0].dttm_last_usage
+                if time_diff < timedelta(hours=settings.PREDICTION_TIMEOUT_IN_HOURS):
+                    return GetPrediction(
+                        next_use_is_allowed_after=timedelta(hours=settings.PREDICTION_TIMEOUT_IN_HOURS) - time_diff
+                    )
 
             prediction_id = get_random_number(
                 range_max=tuple_predictions[1].max_prediction_id,
