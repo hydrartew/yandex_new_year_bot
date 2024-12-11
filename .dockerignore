@@ -5,3 +5,5 @@ __pycache__
 draft.py
 bot.session
 .venv
+/configs/.redis/
+/configs/authorized_key.json
