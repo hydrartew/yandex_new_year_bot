@@ -5,4 +5,3 @@
 **/bot.session
 .venv/
 **/YandexInternalRootCA.crt
-**/authorized_key.json
