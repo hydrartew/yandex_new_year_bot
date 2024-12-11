@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     PREDICTION_TIMEOUT_IN_HOURS: int = 12
     NIGHT_KING_LOSS_THRESHOLD_TO_GET_ACHIEVEMENT: int = 50
 
+    CHAT_IDS_WHITE_LIST: list[int] | None = None
+    CHAT_IDS_BLACK_LIST: list[int] | None = None
+
     path_ssl_ca_certs: str = f'{BASE_DIR}/configs/.redis/YandexInternalRootCA.crt'
 
     class ConfigSnowSecretBox:

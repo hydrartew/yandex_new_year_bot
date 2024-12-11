@@ -18,6 +18,14 @@ class IsSubscribed(BaseFilter):
     async def __call__(self, message: Message | CallbackQuery, bot: Bot, i18n: I18nContext) -> bool:
         localization = Localization(message, i18n)
 
+        if settings.CHAT_IDS_WHITE_LIST is not None and len(settings.CHAT_IDS_WHITE_LIST) != 0:
+            if message.chat.id not in settings.CHAT_IDS_WHITE_LIST:
+                return False
+
+        if settings.CHAT_IDS_BLACK_LIST is not None and len(settings.CHAT_IDS_BLACK_LIST) != 0:
+            if message.chat.id in settings.CHAT_IDS_BLACK_LIST:
+                return False
+
         sub = await bot.get_chat_member(
             chat_id=settings.TELEGRAM_CHANNEL_BOT_NEWS_CHAT_ID,
             user_id=message.from_user.id
