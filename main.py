@@ -22,10 +22,9 @@ def configure_logging():
         logging.getLogger(module).propagate = False
 
 
-async def create_db_ydb_tables(flag: bool = False) -> None:
-    if flag:
-        await db_ydb.create_table_chat_data()
-        await db_ydb.create_tables_predictions()
+async def create_ydb_tables_if_not_exists() -> None:
+    await db_ydb.create_table_chat_data()
+    await db_ydb.create_tables_predictions()
 
 
 async def main() -> None:
@@ -37,7 +36,7 @@ async def main() -> None:
 
     dp.message.middleware(ThrottlingMiddleware())
 
-    await create_db_ydb_tables()
+    await create_ydb_tables_if_not_exists()
 
     try:
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types(), skip_updates=True)
