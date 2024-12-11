@@ -1,0 +1,6 @@
+/logs/
+.idea
+/drafts
+__pycache__
+draft.py
+bot.session
