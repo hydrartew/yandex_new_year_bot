@@ -1,4 +1,6 @@
+import asyncio
 import logging
+from datetime import datetime
 
 from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
 
@@ -38,8 +40,8 @@ async def create_table_chat_data() -> None:
                         `type` Utf8 NOT NULL,
                         `title` Utf8,
                         `from_user_id` Uint64 NOT NULL,
-                        `from_user_username` Utf8 NOT NULL,
-                        `from_user_language_code` Utf8 NOT NULL,
+                        `from_user_username` Utf8,
+                        `from_user_language_code` Utf8,
                         `chat_member_status` Utf8 NOT NULL,
                         `utc_dttm_action` Timestamp NOT NULL,
                         PRIMARY KEY (`chat_id`)
@@ -86,8 +88,8 @@ async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
                     DECLARE $type AS Utf8;
                     DECLARE $title AS Optional<Utf8>;
                     DECLARE $from_user_id AS Uint64;
-                    DECLARE $from_user_username AS Utf8;
-                    DECLARE $from_user_language_code AS Utf8;
+                    DECLARE $from_user_username AS Optional<Utf8>;
+                    DECLARE $from_user_language_code AS Optional<Utf8>;
                     DECLARE $chat_member_status AS Utf8;
                     DECLARE $utc_dttm_action AS Timestamp;
 
@@ -119,8 +121,10 @@ async def upsert_chat_data(data: ChatMemberUpdatedData) -> None:
                         "$type": (data.type, ydb.PrimitiveType.Utf8),
                         "$title": (data.title, ydb.OptionalType(ydb.PrimitiveType.Utf8)),
                         "$from_user_id": (data.from_user_id, ydb.PrimitiveType.Uint64),
-                        "$from_user_username": (data.from_user_username, ydb.PrimitiveType.Utf8),
-                        "$from_user_language_code": (data.from_user_language_code, ydb.PrimitiveType.Utf8),
+                        "$from_user_username": (data.from_user_username, ydb.OptionalType(ydb.PrimitiveType.Utf8)),
+                        "$from_user_language_code": (
+                            data.from_user_language_code, ydb.OptionalType(ydb.PrimitiveType.Utf8)
+                        ),
                         "$chat_member_status": (data.chat_member_status, ydb.PrimitiveType.Utf8),
                         "$utc_dttm_action": (data.utc_dttm_action, ydb.PrimitiveType.Timestamp)
                     }
