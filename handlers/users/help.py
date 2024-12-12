@@ -30,7 +30,8 @@ async def send_help_message(message: Message, i18n: I18nContext, reply_markup: I
                 YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION=settings.YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION,
                 private_chat_footer=private_chat_footer
             ),
-            reply_markup=reply_markup
+            reply_markup=reply_markup,
+            disable_web_page_preview=True
         )
     except TelegramForbiddenError:
         logger.warning(
