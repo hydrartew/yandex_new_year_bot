@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import datetime
 
 from aiogram import F
 from aiogram.filters import Command
@@ -9,6 +10,7 @@ from aiogram.fsm.storage.base import StorageKey
 from aiogram.types import Message, CallbackQuery
 from aiogram_i18n import I18nContext
 
+from configs import settings
 from db.db_redis import SnowDuelDBQueries
 from filters import GroupChat, IsSubscribed
 from handlers import dp
@@ -84,10 +86,10 @@ async def join_the_game(call: CallbackQuery, state: FSMContext, i18n: I18nContex
         await call.answer(localization.get('snow-duel-user-is-owner-already-in-room'), show_alert=True, cache_time=20)
         return
 
-    who = tg_usernames_who_throws_and_who_gets(_data.snow_duel_data)
-
     await call.message.edit_text(
-        text=hud(_data.snow_duel_data, localization) + localization.get('snow-duel-throws', tg_username=who.throw),
+        text=hud(_data.snow_duel_data, localization) + localization.get(
+            'snow-duel-throws', tg_username=_data.snow_duel_data.current_user_moves.tg_username
+        ),
         reply_markup=ikb_throw(localization)
     )
 
@@ -96,12 +98,8 @@ async def join_the_game(call: CallbackQuery, state: FSMContext, i18n: I18nContex
 async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nContext) -> None:
     localization = Localization(call, i18n)
 
-    _data = await SnowDuelDBQueries(
-        chat_id=call.message.chat.id,
-        message_id=call.message.message_id
-    ).make_move(
-        tg_user_id=call.from_user.id
-    )
+    snow_duel_db = SnowDuelDBQueries(call.message.chat.id, call.message.message_id)
+    _data = await snow_duel_db.prepare_to_make_move(call.from_user.id)
 
     if not _data.user_in_room:
         await call.answer(localization.get('snow-duel-room-already-has-opponent'), show_alert=True, cache_time=120)
@@ -115,37 +113,43 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
         await call.answer(localization.get('snow-duel-not-room-exists'), show_alert=True, cache_time=120)
         return
 
-    footer = localization.get('snow-duel-away', tg_username=call.from_user.username)
-    if _data.is_hit:
+    snow_duel_data = _data.snow_duel_data
+
+    is_hit = settings.ConfigSnowDuel.is_hit(snow_duel_data.current_user_moves.hit_chance)
+
+    if is_hit:
         footer = localization.get('snow-duel-hit', tg_username=call.from_user.username)
+        snow_duel_data.current_user_moves.points += 1
+    else:
+        footer = localization.get('snow-duel-away', tg_username=call.from_user.username)
 
-    await call.message.edit_text(hud(_data.snow_duel_data, localization) + footer)
-    await asyncio.sleep(3)
+    await call.message.edit_text(hud(snow_duel_data, localization) + footer)
 
-    if _data.snow_duel_data.game_status == 'finished':
-        await call.message.edit_text(hud(_data.snow_duel_data, localization, finish_game=True))
+    await asyncio.sleep(2)
 
-        if call.from_user.id == _data.snow_duel_data.owner.tg_user_id:
-            another_user_id = _data.snow_duel_data.opponent.tg_user_id
-        else:
-            another_user_id = _data.snow_duel_data.owner.tg_user_id
+    snow_duel_data = await snow_duel_db.make_move(snow_duel_data)
+
+    await asyncio.sleep(1)
+
+    if snow_duel_data.game_status == 'finished':
+        await call.message.edit_text(hud(snow_duel_data, localization, finish_game=True))
 
         await state.clear()  # для call.from_user.id
 
         state.key = StorageKey(
             bot_id=state.key.bot_id,
             chat_id=state.key.chat_id,
-            user_id=another_user_id,
+            user_id=snow_duel_data.another_user.tg_user_id,
             thread_id=state.key.thread_id
         )
         await state.clear()  # для соперника
 
         return
 
-    who = tg_usernames_who_throws_and_who_gets(_data.snow_duel_data)
-
     await call.message.edit_text(
-        text=hud(_data.snow_duel_data, localization) + localization.get('snow-duel-throws', tg_username=who.throw),
+        text=hud(_data.snow_duel_data, localization) + localization.get(
+            'snow-duel-throws', tg_username=_data.snow_duel_data.current_user_moves.tg_username
+        ),
         reply_markup=ikb_throw(localization)
     )
 
@@ -208,41 +212,39 @@ async def check_state(message: Message, i18n: I18nContext) -> None:
     await message.reply(localization.get('snow-duel-check-state'))
 
 
-def health_points(_data: SnowDuelRoom) -> str:
-    text = ''
-    if _data.opponent is not None:
-        text = f'@{_data.owner.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.opponent.points)}'
-        text += f'\n@{_data.opponent.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.owner.points)}'
-    return text
-
-
 def hud(_data: SnowDuelRoom,
         localization: Localization,
         finish_game: bool = False,
         cancel_game: bool = False,
         who_canceled_game: str | None = None) -> str:
+
+    # если игра отменена, еще не начавшись
+    if cancel_game and _data.opponent is None:
+        return (
+            f'{localization.get("snow-duel-start", tg_username=_data.owner.tg_username)}\n\n'
+            f'{localization.get("snow-duel-cancelled")}'
+        )
+
+    health_points = (
+        f'@{_data.owner.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.opponent.points)}\n'
+        f'@{_data.opponent.tg_username}: {"❤️❤️".replace("❤️", "💔", _data.owner.points)}'
+    )
+
     base_info = localization.get(
         'snow-duel-base-info',
         distance=_data.distance,
         rounds=_data.current_round,
-        health_points_data=health_points(_data)
+        health_points_data=health_points
     )
 
     if finish_game:
-        winner = _data.owner.tg_username if _data.owner.points >= 2 else _data.opponent.tg_username
-
         return (
             f'{localization.get("snow-duel-finished")}\n'
             f'{base_info}\n\n'
-            f'{localization.get("snow-duel-winner", tg_username=winner)}'
+            f'{localization.get("snow-duel-winner", tg_username=_data.current_user_moves.tg_username)}'
         )
 
     if cancel_game:
-        if _data.opponent is None:
-            return (
-                f'{localization.get("snow-duel-start", tg_username=_data.owner.tg_username)}\n\n'
-                f'{localization.get("snow-duel-cancelled")}'
-            )
         return (
             f'{localization.get("snow-duel-cancelled-2")}\n'
             f'{base_info}\n\n'
@@ -252,16 +254,4 @@ def hud(_data: SnowDuelRoom,
     return (
         f'{localization.get("snow-duel-title-blockquote")}\n'
         f'{base_info}\n\n'
-    )
-
-
-def tg_usernames_who_throws_and_who_gets(_data: SnowDuelRoom) -> TgUsernamesWhoThrowsAndWhoGets:
-    if _data.who_moves == WhoMoves.owner:
-        return TgUsernamesWhoThrowsAndWhoGets(
-            throw=_data.owner.tg_username,
-            get=_data.opponent.tg_username
-        )
-    return TgUsernamesWhoThrowsAndWhoGets(
-        throw=_data.opponent.tg_username,
-        get=_data.owner.tg_username
     )

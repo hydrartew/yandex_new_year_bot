@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from datetime import datetime
 
@@ -6,7 +5,8 @@ import redis
 
 from configs import settings
 from db.db_redis.connection import create_redis_client, redis_retry
-from schemas import SnowDuelRoom, SnowDuelUser, WhoMoves, MakeMove, AddOpponentToRoom, SnowDuelUserStats, CancelGame
+from schemas import SnowDuelRoom, SnowDuelUser, MakeMove, AddOpponentToRoom, SnowDuelUserStats, CancelGame, \
+    PrepareToMakeMove
 
 logger = logging.getLogger('db.redis')
 
@@ -31,9 +31,9 @@ class SnowDuelDBQueries:
             owner=SnowDuelUser(
                 tg_user_id=owner_tg_user_id,
                 tg_username=owner_tg_tg_username,
-                hit_chance=settings.ConfigSnowDuel.hit_chance(distance)
+                hit_chance=settings.ConfigSnowDuel.hit_chance(distance),
+                is_making_move=True if settings.ConfigSnowDuel.who_moves_first().owner else False
             ),
-            who_moves=settings.ConfigSnowDuel.who_moves_first(),
             distance=distance,
             dttm_created=datetime.now()
         )
@@ -46,6 +46,7 @@ class SnowDuelDBQueries:
             value.owner.hit_chance += settings.ConfigSnowDuel.user_buff(user_stats.amount)
 
             await r.set(self.hash_name, value.model_dump_json())
+
             logger.info(f'The room {self.hash_name} was created successfully')
 
         except (redis.ConnectionError, redis.TimeoutError) as e:
@@ -105,7 +106,8 @@ class SnowDuelDBQueries:
             room_data.opponent = SnowDuelUser(
                 tg_user_id=opponent_tg_user_id,
                 tg_username=opponent_tg_tg_username,
-                hit_chance=hit_chance
+                hit_chance=hit_chance,
+                is_making_move=False if room_data.owner.is_making_move else True
             )
 
             await r.set(self.hash_name, room_data.model_dump_json())
@@ -129,8 +131,8 @@ class SnowDuelDBQueries:
             await r.aclose()
 
     @redis_retry()
-    async def make_move(self, tg_user_id: int) -> MakeMove:
-        logger.info(f'tg_user_id:{tg_user_id} make a move in {self.hash_name}')
+    async def prepare_to_make_move(self, tg_user_id: int) -> PrepareToMakeMove:
+        logger.info(f'tg_user_id:{tg_user_id} preparing to make a move in {self.hash_name}')
 
         r = await create_redis_client()
         try:
@@ -147,58 +149,29 @@ class SnowDuelDBQueries:
                                f'the room {self.hash_name} is in status "{room_data.game_status}"')
                 return MakeMove(room_exists=False)
 
-            if tg_user_id == room_data.owner.tg_user_id:
-                if room_data.who_moves == WhoMoves.owner:
-                    current_player = room_data.owner
-                    another_player, who_move_next = room_data.opponent, WhoMoves.opponent
-                else:
-                    logger.info(f'tg_user_id:{tg_user_id} is not current user move in the room {self.hash_name}')
-                    return MakeMove(is_current_user_move=False)
-
-            elif tg_user_id == room_data.opponent.tg_user_id:
-                if room_data.who_moves == WhoMoves.opponent:
-                    current_player = room_data.opponent
-                    another_player, who_move_next = room_data.owner, WhoMoves.owner
-                else:
-                    logger.info(f'tg_user_id:{tg_user_id} is not current user move in the room {self.hash_name}')
-                    return MakeMove(is_current_user_move=False)
-
-            else:
+            if tg_user_id not in (room_data.owner.tg_user_id, room_data.opponent.tg_user_id):
                 logger.info(f'tg_user_id:{tg_user_id} not in the room {self.hash_name}')
                 return MakeMove(user_in_room=False)
 
-            current_player.moves += 1
-            current_player.dttm_last_move = datetime.now()
+            if tg_user_id != room_data.current_user_moves.tg_user_id:
+                logger.info(f'tg_user_id:{tg_user_id} is not current user move in the room {self.hash_name}')
+                return MakeMove(is_current_user_move=False)
 
-            is_hit = settings.ConfigSnowDuel.is_hit(current_player.hit_chance)
-            if is_hit:
-                current_player.points += 1
+            # if tg_user_id == room_data.owner.tg_user_id:
+            #     curr_user = room_data.owner
+            # elif tg_user_id == room_data.opponent.tg_user_id:
+            #     curr_user = room_data.opponent
+            # else:
+            #     logger.info(f'tg_user_id:{tg_user_id} not in the room {self.hash_name}')
+            #     return MakeMove(user_in_room=False)
+            #
+            # if not curr_user.is_making_move:
+            #     logger.info(f'tg_user_id:{tg_user_id} is not current user move in the room {self.hash_name}')
+            #     return MakeMove(is_current_user_move=False)
 
-            if current_player.points >= self.limit_points_to_win:
-                room_data.game_status = 'finished'
+            logger.info(f'tg_user_id:{tg_user_id} сan make a move in {self.hash_name}')
 
-                async with r.pipeline() as pipe:
-                    await pipe.set(self.hash_name, room_data.model_dump_json())
-                    await pipe.hincrby(self.user_data_pattern.format(current_player.tg_user_id), 'wins')
-                    await pipe.hincrby(self.user_data_pattern.format(another_player.tg_user_id), 'losses')
-
-                    await pipe.execute()
-
-                logger.info('tg_user_id:{} wins tg_user_id:{} in room {}'.format(
-                    current_player.tg_user_id, another_player.tg_user_id, self.hash_name))
-
-                return MakeMove(snow_duel_data=room_data, is_hit=is_hit)
-
-            if (room_data.owner.moves + room_data.opponent.moves) % 2 == 0:
-                room_data.current_round += 1
-
-            room_data.who_moves = who_move_next
-
-            await r.set(self.hash_name, room_data.model_dump_json())
-
-            logger.info(f'tg_user_id:{tg_user_id} made a move in {self.hash_name} successfully')
-
-            return MakeMove(snow_duel_data=room_data, is_hit=is_hit)
+            return PrepareToMakeMove(snow_duel_data=room_data)
 
         except (redis.ConnectionError, redis.TimeoutError) as e:
             logger.error(
@@ -210,6 +183,62 @@ class SnowDuelDBQueries:
             logger.critical(
                 'An unexpected error while tg_user_id:{} make a move in the room {}: {}'
                 .format(tg_user_id, self.hash_name, e)
+            )
+            raise
+        finally:
+            await r.aclose()
+
+    @redis_retry()
+    async def make_move(self, room_data: SnowDuelRoom) -> SnowDuelRoom:
+        curr_user = room_data.current_user_moves
+        another_user = room_data.another_user
+
+        logger.info(f'tg_user_id:{curr_user.tg_user_id} make a move in {self.hash_name}')
+
+        curr_user.moves += 1
+        curr_user.dttm_last_move = datetime.now()
+
+        r = await create_redis_client()
+        try:
+            if curr_user.points >= self.limit_points_to_win:
+                room_data.game_status = 'finished'
+
+                async with r.pipeline() as pipe:
+                    await pipe.set(self.hash_name, room_data.model_dump_json())
+                    await pipe.hincrby(self.user_data_pattern.format(curr_user.tg_user_id), 'wins')
+                    await pipe.hincrby(self.user_data_pattern.format(another_user.tg_user_id), 'losses')
+
+                    await pipe.execute()
+
+                logger.info('tg_user_id:{} wins tg_user_id:{} in room {}'.format(
+                    curr_user.tg_user_id, another_user.tg_user_id, self.hash_name
+                ))
+
+                return room_data
+
+            # если оба участника сделали ход
+            if (room_data.owner.moves + room_data.opponent.moves) % 2 == 0:
+                room_data.current_round += 1
+
+            curr_user.is_making_move = False
+            another_user.is_making_move = True
+
+            await r.set(self.hash_name, room_data.model_dump_json())
+
+            logger.info(f'tg_user_id:{curr_user.tg_user_id} made a move in {self.hash_name} successfully')
+
+            return room_data
+
+        except (redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(
+                'Error connecting to Redis while tg_user_id:{} make a move in the room {}: {}'
+                .format(curr_user.tg_user_id, self.hash_name, e)
+            )
+            raise
+        except Exception as e:
+            logger.critical(
+                'An unexpected error while tg_user_id:{} make a move in the room {}: {}'
+                .format(curr_user.tg_user_id, self.hash_name, e)
             )
             raise
         finally:
@@ -262,25 +291,6 @@ class SnowDuelDBQueries:
                 .format(initiator_tg_user_id, self.hash_name, e)
             )
             raise
-        finally:
-            await r.aclose()
-
-    @redis_retry()
-    async def get_room(self) -> SnowDuelRoom | None:
-        logger.info(f'Getting room {self.hash_name}')
-
-        r = await create_redis_client()
-        try:
-            room_data = await r.get(self.hash_name)
-
-            if room_data is None:
-                logger.error(f'Room {self.hash_name} not found for snow_duel')
-                return
-
-            return SnowDuelRoom.model_validate_json(room_data)
-
-        except Exception as e:
-            logger.error(f"Error while getting room: {e}")
         finally:
             await r.aclose()
 

@@ -95,6 +95,7 @@ class SnowDuelUserStats(BaseModel):
 class SnowDuelUser(BaseModel):
     tg_user_id: int
     tg_username: str
+    is_making_move: bool
     hit_chance: Percentage
     points: int = 0
     moves: int = 0
@@ -115,17 +116,40 @@ class SnowDuelRoom(BaseModel):
     game_status: Literal['created', 'in_progress', 'finished', 'cancelled']
     owner: SnowDuelUser
     opponent: SnowDuelUser | None = None
-    who_moves: WhoMoves | None = None
     current_round: int = 1
     distance: int
     dttm_created: datetime
 
+    @computed_field
+    @property
+    def current_user_moves(self) -> SnowDuelUser | None:
+        # т.е. игра еще не началась
+        if self.opponent is None:
+            return
 
-class MakeMove(BaseModel):
+        if self.owner.is_making_move:
+            return self.owner
+        elif self.opponent.is_making_move:
+            return self.opponent
+        else:
+            return
+
+    @computed_field
+    @property
+    def another_user(self) -> SnowDuelUser | None:
+        if self.opponent is None:
+            return
+        return self.opponent if self.current_user_moves == self.owner else self.owner
+
+
+class PrepareToMakeMove(BaseModel):
     user_in_room: bool = True
     is_current_user_move: bool = True
     room_exists: bool = True
     snow_duel_data: SnowDuelRoom | None = None
+
+
+class MakeMove(PrepareToMakeMove):
     is_hit: bool = False
 
 
