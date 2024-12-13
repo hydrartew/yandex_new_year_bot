@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from datetime import datetime
 
 from aiogram import F
 from aiogram.filters import Command
@@ -17,7 +16,7 @@ from handlers import dp
 from keyboards.inline import ikb_throw, ikb_start_snow_duel
 from loader import bot
 from localization import Localization
-from schemas import WhoMoves, SnowDuelRoom, TgUsernamesWhoThrowsAndWhoGets
+from schemas import SnowDuelRoom
 
 logger = logging.getLogger('handlers')
 
