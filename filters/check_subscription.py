@@ -60,7 +60,7 @@ class IsSubscribed(BaseFilter):
 
             else:
                 await message.answer(
-                    localization.get('sub-alert', channel=settings.TELEGRAM_CHANNEL_BOT_NEWS_NAME),
+                    localization.get('sub-alert'),
                     show_alert=True,
                     cache_time=10
                 )
