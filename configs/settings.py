@@ -1,7 +1,7 @@
 import random
 from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from schemas import WhoMoves, SettingsConfigSnow, NumberSnowballs, SettingsConfigSnowDuel, Distance, BottomBound, \
@@ -22,9 +22,6 @@ class Settings(BaseSettings):
     TELEGRAM_CHANNEL_BOT_NEWS_NAME: str = 'YNYB News'
     TELEGRAM_CHANNEL_BOT_NEWS_CHAT_ID: int = -1002015280712
     TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK: str = 'https://nda.ya.ru/t/8Ve9IRKc79adW7'
-    TELEGRAM_CHANNEL_BOT_NEWS_INVITE_HYPERLINK: str = '<a href="{}">{}</a>'.format(
-        TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK, TELEGRAM_CHANNEL_BOT_NEWS_NAME
-    )
 
     YANDEX_FORM_FEEDBACK_LINK: str = 'https://forms.yandex-team.ru/ext/surveys/13711111/'
     YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION: str = \
@@ -48,6 +45,13 @@ class Settings(BaseSettings):
     CHAT_IDS_BLACK_LIST: list[int] | None = None
 
     path_ssl_ca_certs: str = f'{BASE_DIR}/configs/.redis/YandexInternalRootCA.crt'
+
+    @computed_field
+    @property
+    def TELEGRAM_CHANNEL_BOT_NEWS_INVITE_HYPERLINK(self) -> str:
+        return '<a href="{}">{}</a>'.format(
+            self.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK, self.TELEGRAM_CHANNEL_BOT_NEWS_NAME
+        )
 
     class ConfigSnowSecretBox:
         """Конфигурация шанса выпадения сюрприз бокса для игры ``/snow``"""

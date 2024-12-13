@@ -11,7 +11,7 @@ from aiogram_i18n import I18nContext
 
 from configs import settings
 from db.db_redis import SnowDuelDBQueries
-from filters import GroupChat, IsSubscribed
+from filters import GroupChat, IsSubscribed, IsBlocked
 from handlers import dp
 from keyboards.inline import ikb_throw, ikb_start_snow_duel
 from loader import bot
@@ -203,7 +203,7 @@ async def cancel_handler(message: Message, state: FSMContext, i18n: I18nContext)
     Command('snow', 'snow_duel', 'snowman', 'quiz'),
     GroupChat(),
     SnowDuelState.in_game,
-    IsSubscribed(),
+    IsBlocked(user_in_fsm_state=True),
     flags={"throttling_key": "snow_duel_in_game"}
 )
 async def check_state(message: Message, i18n: I18nContext) -> None:

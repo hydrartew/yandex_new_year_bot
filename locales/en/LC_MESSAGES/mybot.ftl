@@ -116,8 +116,8 @@ snow-duel-throws = 🔛 @{ $tg_username } - throws
 snow-duel-away =  🔛 @{ $tg_username } - misses 💨
 snow-duel-hit =  🔛 @{ $tg_username } - hits 🎯
 
-sub-msg = To participate in the New Year's event ✨ you need to subscribe to the channel { $channel }
-sub-alert = { sub-msg }, use any command for a link
+sub-msg = To participate in the New Year's event ✨ you need to subscribe to the channel { $TELEGRAM_CHANNEL_BOT_NEWS_INVITE_HYPERLINK }
+sub-alert = To participate in the New Year's event ✨ you need to subscribe to the channel, use any command for a link
 
 form = Form
 

@@ -44,8 +44,13 @@ class IsSubscribed(BaseFilter):
             if isinstance(message, Message):
                 try:
                     await message.reply(
-                        localization.get('sub-msg', channel=settings.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_HYPERLINK),
-                        reply_markup=ikb_subscription(localization)
+                        localization.get(
+                            'sub-msg',
+                            TELEGRAM_CHANNEL_BOT_NEWS_INVITE_HYPERLINK=
+                            settings.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_HYPERLINK
+                        ),
+                        reply_markup=ikb_subscription(localization),
+                        disable_web_page_preview=True
                     )
                 except TelegramForbiddenError:
                     logger.warning(
@@ -65,11 +70,16 @@ class IsSubscribed(BaseFilter):
 
 
 class IsBlocked(BaseFilter):
+    def __init__(self, user_in_fsm_state: bool = False):
+        self.bad_statuses = [ChatMemberStatus.KICKED, ChatMemberStatus.RESTRICTED]
+        if user_in_fsm_state:
+            self.bad_statuses.append(ChatMemberStatus.LEFT)
+
     async def __call__(self, message: Message, bot: Bot) -> bool:
         sub = await bot.get_chat_member(
             chat_id=settings.TELEGRAM_CHANNEL_BOT_NEWS_CHAT_ID,
             user_id=message.from_user.id
         )
-        if sub.status in (ChatMemberStatus.KICKED, ChatMemberStatus.RESTRICTED):
+        if sub.status in self.bad_statuses:
             return False
         return True
