@@ -31,7 +31,7 @@ help-text = { $message_text ->
        *[other] {""}
     }
 
-night-king-unavailable = Currently unavailable, try again later
+night-king-unavailable = The conditions for obtaining a secret achievement are not met, try again later
 
 night-king-unblocked = 
     Night King 👑 unlocked!
