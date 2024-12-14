@@ -72,6 +72,8 @@ class IsSubscribed(BaseFilter):
 class IsBlocked(BaseFilter):
     def __init__(self, user_in_fsm_state: bool = False):
         self.bad_statuses = [ChatMemberStatus.KICKED, ChatMemberStatus.RESTRICTED]
+
+        # для случая, когда пользователь находится в состоянии FSMContext, и сам вышел из группы
         if user_in_fsm_state:
             self.bad_statuses.append(ChatMemberStatus.LEFT)
 
