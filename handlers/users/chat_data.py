@@ -10,7 +10,7 @@ from schemas import ChatMemberUpdatedData
 
 
 @dp.my_chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER), IsBlocked())
-@dp.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER), GroupChat(), ChannelChat(), IsBlocked())
+@dp.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER), GroupChat() or ChannelChat(), IsBlocked())
 # Для приватного чата событие "chat open", т.е. ввод команды /start, отлавливается в filters.chat_type.PrivateChat
 async def update_chat_data(event: ChatMemberUpdated):
     await upsert_chat_data(
