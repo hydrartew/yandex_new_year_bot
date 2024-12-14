@@ -4,13 +4,14 @@ from aiogram.filters import ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
 from aiogram.types import ChatMemberUpdated
 
 from db.db_ydb import upsert_chat_data
-from filters import IsBlocked
+from filters import IsBlocked, GroupChat, ChannelChat
 from loader import dp
 from schemas import ChatMemberUpdatedData
 
 
 @dp.my_chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER), IsBlocked())
-@dp.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER), IsBlocked())
+@dp.my_chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER), GroupChat(), ChannelChat(), IsBlocked())
+# Для приватного чата событие "chat open", т.е. ввод команды /start, отлавливается в filters.chat_type.PrivateChat
 async def update_chat_data(event: ChatMemberUpdated):
     await upsert_chat_data(
         ChatMemberUpdatedData(
