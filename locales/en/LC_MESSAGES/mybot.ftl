@@ -1,6 +1,8 @@
+general-chat = General chat
+
 help-text = { $message_text -> 
-    [start] Hello! I'm New Year Frost Bot 🎅, here to get you into the holiday spirit ✨ 
-    *[other] 🎄 <b>I am the New Year Frost Bot for Yandex users</b>
+    [start] Hello! I'm New Year Bot Moroz 🎅, here to get you into the holiday spirit ✨ 
+    *[other] 🎄 <b>I am the New Year Bot Moroz for Yandex users</b>
     }
 
     Bot's news channel - <a href="{ $TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK }">{ $TELEGRAM_CHANNEL_BOT_NEWS_NAME }</a>
@@ -28,6 +30,8 @@ help-text = { $message_text ->
         [true] ⚠️ In private chat, I only respond to the /help and /stats commands
 
         ✅ To start playing, add me to a group
+
+        ✅ Or join us in the <a href="{ $TELEGRAM_GROUP_FOR_FLOOD_LINK }">general chat</a>
        *[other] {""}
     }
 

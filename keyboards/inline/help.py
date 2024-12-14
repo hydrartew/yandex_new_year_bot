@@ -9,18 +9,14 @@ def ikb_welcome_private_chat(localization: Localization):
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=settings.TELEGRAM_CHANNEL_BOT_NEWS_NAME,
-                    url=settings.TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK
-                ),
-                InlineKeyboardButton(
-                    text=localization.get('form'),
-                    url=settings.YANDEX_FORM_FEEDBACK_LINK
+                    text=localization.get('add-bot-to-group'),
+                    url='https://t.me/{}?startgroup=sgl'.format(settings.TELEGRAM_BOT_LOGIN)
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=localization.get('add-bot-to-group'),
-                    url='https://t.me/{}?startgroup=sgl'.format(settings.TELEGRAM_BOT_LOGIN)
+                    text=localization.get('general-chat'),
+                    url=settings.TELEGRAM_GROUP_FOR_FLOOD_LINK
                 )
             ]
         ]
