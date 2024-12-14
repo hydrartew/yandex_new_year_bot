@@ -13,6 +13,9 @@ logger = logging.getLogger('handlers')
 
 class PrivateChat(BaseFilter):
     async def __call__(self, message: Message) -> bool:
+        if message.chat.type != ChatType.PRIVATE:
+            return False
+
         logger.info('tg_user_id:{} in private chat send message: "{}"'.format(message.from_user.id, message.text))
 
         if message.text == '/start':
@@ -29,7 +32,7 @@ class PrivateChat(BaseFilter):
                 )
             )
 
-        return message.chat.type == ChatType.PRIVATE
+        return True
 
 
 class GroupChat(BaseFilter):
