@@ -40,6 +40,6 @@ class GroupChat(BaseFilter):
         return message.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP)
 
 
-class ChannelChat(BaseFilter):
+class GroupAndChannelChat(BaseFilter):
     async def __call__(self, message: Message) -> bool:
-        return message.chat.type == ChatType.CHANNEL
+        return message.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP, ChatType.CHANNEL)
