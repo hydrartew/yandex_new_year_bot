@@ -175,7 +175,12 @@ class DBPrediction:
                 )
             )
             logger.info('Prediction stats for tg_user_id:{} received successfully'.format(self.tg_user_id))
-            return PredictionStats(received=result_sets[0].rows[0].get('received'))
+
+            received = 0
+            if len(result_sets[0].rows) != 0:
+                received = result_sets[0].rows[0].get('received')
+
+            return PredictionStats(received=received)
 
         except AioRpcError as err:
             if err.code() == StatusCode.RESOURCE_EXHAUSTED:

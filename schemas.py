@@ -52,7 +52,7 @@ class PredictionStats(BaseModel):
     received: int | None = None
 
     def model_post_init(self, __context):
-        self.received = 'N/A' if not self.received else self.received
+        self.received = 'N/A' if self.received is None else self.received
 
 
 class SnowRedisData(BaseModel):
