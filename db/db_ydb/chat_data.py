@@ -16,7 +16,7 @@ from schemas import ChatMemberUpdatedData
 
 logger = logging.getLogger('db.ydb')
 
-full_path: str = '{}/ynyb/chat_data/'.format(settings.YDB_DATABASE.removeprefix('/'))
+full_path: str = '{}/{}/chat_data/'.format(settings.YDB_DATABASE.removesuffix('/'), settings.YDB_ROOT_DIR_NAME)
 table_name = 'chats'
 
 

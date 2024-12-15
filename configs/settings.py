@@ -32,6 +32,7 @@ class Settings(BaseSettings):
 
     YDB_DATABASE: str
     YDB_ENDPOINT: str
+    YDB_ROOT_DIR_NAME: str = 'ynyb'
 
     TEST_ENVIRONMENT: bool = False
 

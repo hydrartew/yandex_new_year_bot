@@ -15,7 +15,7 @@ from schemas import RandomPrediction, DataUsedPredictions, DataMaxPredictionId, 
 
 logger = logging.getLogger('db.ydb')
 
-full_path: str = '{}/ynyb/predictions/'.format(settings.YDB_DATABASE.removeprefix('/'))
+full_path: str = '{}/{}/predictions/'.format(settings.YDB_DATABASE.removesuffix('/'), settings.YDB_ROOT_DIR_NAME)
 
 table_name_predictions = 'predictions'
 table_name_used_predictions = 'used_predictions'
