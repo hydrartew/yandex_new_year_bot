@@ -51,9 +51,11 @@ async def get_chat_users(client, group_id) -> list[TelegramUser]:
 
 
 async def main():
-    group_id = 1002137483542
+    group_id = -100
 
     chat_users = await get_chat_users(bot, group_id)
+
+    ic('Количество участников: ', len(chat_users))
     ic(chat_users)
 
 
