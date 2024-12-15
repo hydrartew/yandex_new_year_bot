@@ -91,7 +91,7 @@ class Settings(BaseSettings):
                 # opponent=(1-owner)
             ),
             user_buff=UserBuff(
-                interval_of_games_played=45,
+                interval_of_games_played=37,
                 increase_hit_chance="1%",
                 max_increase_hit_chance="15%"
             )
