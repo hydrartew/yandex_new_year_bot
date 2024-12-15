@@ -1,17 +1,13 @@
-import asyncio
 import logging
-from datetime import datetime
-
-from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
 
 import ydb
 import ydb.iam
 from grpc import StatusCode
 from grpc.aio import AioRpcError
+from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
 
 from configs import settings
 from db.db_ydb.credentials import credentials_manager
-
 from schemas import ChatMemberUpdatedData
 
 logger = logging.getLogger('db.ydb')
