@@ -12,12 +12,6 @@ def ikb_welcome_private_chat(localization: Localization):
                     text=localization.get('add-bot-to-group'),
                     url='https://t.me/{}?startgroup=sgl'.format(settings.TELEGRAM_BOT_LOGIN)
                 )
-            ],
-            [
-                InlineKeyboardButton(
-                    text=localization.get('general-chat'),
-                    url=settings.TELEGRAM_GROUP_FOR_FLOOD_LINK
-                )
             ]
         ]
     )

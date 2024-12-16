@@ -30,8 +30,6 @@ help-text = { $message_text ->
         [true] ⚠️ In private chat, I only respond to the /help and /stats commands
 
         ✅ To start playing, add me to a group
-
-        ✅ Or join us in the <a href="{ $TELEGRAM_GROUP_FOR_FLOOD_LINK }">general chat</a>
        *[other] {""}
     }
 

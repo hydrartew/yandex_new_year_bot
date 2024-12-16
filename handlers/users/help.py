@@ -28,8 +28,7 @@ async def send_help_message(message: Message, i18n: I18nContext, reply_markup: I
                 TELEGRAM_CHANNEL_BOT_NEWS_NAME=settings.TELEGRAM_CHANNEL_BOT_NEWS_NAME,
                 YANDEX_FORM_FEEDBACK_LINK=settings.YANDEX_FORM_FEEDBACK_LINK,
                 YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION=settings.YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION,
-                private_chat_footer=private_chat_footer,
-                TELEGRAM_GROUP_FOR_FLOOD_LINK=settings.TELEGRAM_GROUP_FOR_FLOOD_LINK
+                private_chat_footer=private_chat_footer
             ),
             reply_markup=reply_markup,
             disable_web_page_preview=True

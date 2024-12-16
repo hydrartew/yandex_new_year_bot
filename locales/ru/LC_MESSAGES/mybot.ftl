@@ -30,8 +30,6 @@ help-text = { $message_text ->
         [true] ⚠️ В лс отвечаю только на команды /help и /stats
 
         ✅ Чтобы начать играть, добавь меня в группу
-
-        ✅ Или присоединяйся к нам в <a href="{ $TELEGRAM_GROUP_FOR_FLOOD_LINK }">общем чате</a>
        *[other] {""}
     }
 
