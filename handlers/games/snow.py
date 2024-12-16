@@ -28,6 +28,14 @@ async def game_snow(message: Message, i18n: I18nContext) -> None:
         )
         return
 
+    # если reply на свое сообщение
+    if message.from_user.username == message.reply_to_message.from_user.username:
+        await send_message(
+            message=message,
+            text=localization.get('snowball-at-myself', tg_username=message.from_user.username)
+        )
+        return
+
     # если reply на сообщение бота
     if (message.reply_to_message.from_user.is_bot or
             message.reply_to_message.from_user.id == settings.TELEGRAM_BOT_CREATOR_ID):
@@ -38,14 +46,6 @@ async def game_snow(message: Message, i18n: I18nContext) -> None:
                 tg_username=message.from_user.username,
                 bot_tg_username=message.reply_to_message.from_user.username
             )
-        )
-        return
-
-    # если reply на свое сообщение
-    if message.from_user.username == message.reply_to_message.from_user.username:
-        await send_message(
-            message=message,
-            text=localization.get('snowball-at-myself', tg_username=message.from_user.username)
         )
         return
 
