@@ -1,13 +1,16 @@
 import asyncio
 import logging
+from typing import Callable, Any
 
 from aiogram import F
+from aiogram.exceptions import TelegramRetryAfter
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.base import StorageKey
 from aiogram.types import Message, CallbackQuery
 from aiogram_i18n import I18nContext
+from tenacity import retry, stop_after_attempt, before_sleep_log, wait_fixed
 
 from configs import settings
 from db.db_redis import SnowDuelDBQueries
@@ -85,7 +88,8 @@ async def join_the_game(call: CallbackQuery, state: FSMContext, i18n: I18nContex
         await call.answer(localization.get('snow-duel-user-is-owner-already-in-room'), show_alert=True, cache_time=20)
         return
 
-    await call.message.edit_text(
+    await execute_message_with_retries(
+        call.message.edit_text,
         text=hud(_data.snow_duel_data, localization) + localization.get(
             'snow-duel-throws', tg_username=_data.snow_duel_data.current_user_moves.tg_username
         ),
@@ -105,7 +109,7 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
         return
 
     if not _data.is_current_user_move:
-        await call.answer(localization.get('snow-duel-is-current-user-move'), show_alert=True, cache_time=3)
+        await call.answer(localization.get('snow-duel-is-current-user-move'), show_alert=True, cache_time=5)
         return
 
     if not _data.room_exists:
@@ -122,7 +126,20 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
     else:
         footer = localization.get('snow-duel-away', tg_username=call.from_user.username)
 
-    await call.message.edit_text(hud(snow_duel_data, localization) + footer)
+    try:
+        await call.message.edit_text(hud(snow_duel_data, localization) + footer)
+    except TelegramRetryAfter as err:
+        logger.warning(err.message)
+
+        await call.answer(
+            text=(
+                'Произошла ошибка на стороне Секунданта (Telegram: Flood control)\n'
+                'Повтори попытку через: {} сек'.format(err.retry_after)
+            ),
+            show_alert=True,
+            cache_time=min(10, err.retry_after)
+        )
+        return
 
     await asyncio.sleep(3)
 
@@ -131,8 +148,6 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
     await asyncio.sleep(2)
 
     if snow_duel_data.game_status == 'finished':
-        await call.message.edit_text(hud(snow_duel_data, localization, finish_game=True))
-
         await state.clear()  # для call.from_user.id
 
         state.key = StorageKey(
@@ -143,9 +158,15 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
         )
         await state.clear()  # для соперника
 
+        await execute_message_with_retries(
+            call.message.edit_text,
+            text=hud(snow_duel_data, localization, finish_game=True)
+        )
+
         return
 
-    await call.message.edit_text(
+    await execute_message_with_retries(
+        call.message.edit_text,
         text=hud(_data.snow_duel_data, localization) + localization.get(
             'snow-duel-throws', tg_username=_data.snow_duel_data.current_user_moves.tg_username
         ),
@@ -186,8 +207,15 @@ async def cancel_handler(message: Message, state: FSMContext, i18n: I18nContext)
     )
     await state.clear()  # для соперника
 
-    await bot.edit_message_text(
-        hud(
+    await execute_message_with_retries(
+        message.answer,
+        text=localization.get('snow-duel-cancelled'),
+        reply_to_message_id=game_room_message_id
+    )
+
+    await execute_message_with_retries(
+        bot.edit_message_text,
+        text=hud(
             _data.snow_duel_data,
             localization,
             cancel_game=True,
@@ -196,7 +224,6 @@ async def cancel_handler(message: Message, state: FSMContext, i18n: I18nContext)
         chat_id=message.chat.id,
         message_id=game_room_message_id
     )
-    await message.answer(localization.get('snow-duel-cancelled'), reply_to_message_id=game_room_message_id)
 
 
 @dp.message(
@@ -216,7 +243,6 @@ def hud(_data: SnowDuelRoom,
         finish_game: bool = False,
         cancel_game: bool = False,
         who_canceled_game: str | None = None) -> str:
-
     # если игра отменена, еще не начавшись
     if cancel_game and _data.opponent is None:
         return (
@@ -254,3 +280,17 @@ def hud(_data: SnowDuelRoom,
         f'{localization.get("snow-duel-title-blockquote")}\n'
         f'{base_info}\n\n'
     )
+
+
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_fixed(0.5),
+    before_sleep=before_sleep_log(logger, logging.INFO)
+)
+async def execute_message_with_retries(func: Callable, *args, **kwargs: Any) -> None:
+    try:
+        await func(*args, **kwargs)
+    except TelegramRetryAfter as err:
+        logger.warning(err.message)
+        await asyncio.sleep(err.retry_after)
+        raise
