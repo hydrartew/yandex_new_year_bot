@@ -1,5 +1,6 @@
 import logging
 
+from aiogram.exceptions import TelegramRetryAfter
 from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram_i18n import I18nContext
@@ -20,14 +21,16 @@ async def game_snow(message: Message, i18n: I18nContext) -> None:
 
     # если сообщение без reply
     if message.reply_to_message is None:
-        await message.answer(
+        await send_message(
+            message=message,
             text=localization.get('snowball-in-air', tg_username=message.from_user.username)
         )
         return
 
     # если reply на сообщение бота
     if message.reply_to_message.from_user.is_bot:
-        await message.answer(
+        await send_message(
+            message=message,
             text=localization.get(
                 'snowball-in-bot',
                 tg_username=message.from_user.username,
@@ -38,7 +41,8 @@ async def game_snow(message: Message, i18n: I18nContext) -> None:
 
     # если reply на свое сообщение
     if message.from_user.username == message.reply_to_message.from_user.username:
-        await message.answer(
+        await send_message(
+            message=message,
             text=localization.get('snowball-at-myself', tg_username=message.from_user.username)
         )
         return
@@ -58,21 +62,32 @@ async def game_snow(message: Message, i18n: I18nContext) -> None:
             message.from_user.id, number_snowballs
         ))
 
-        await message.answer(
-            text=localization.get(
-                'snowball-is-secret-box',
-                tg_username=message.from_user.username,
-                number_snowballs=number_snowballs
-            )
+        text = localization.get(
+            'snowball-is-secret-box',
+            tg_username=message.from_user.username,
+            number_snowballs=number_snowballs
         )
-        await db_redis.snow_increase(message.from_user.id, from_tg_user_id_amount=number_snowballs)
+
+        message_was_sent = await send_message(message, text)
+        if message_was_sent:
+            await db_redis.snow_increase(message.from_user.id, from_tg_user_id_amount=number_snowballs)
 
     else:
-        await message.answer(
-            text=localization.get(
-                'snowball-throw',
-                tg_username=message.from_user.username,
-                to_tg_username=message.reply_to_message.from_user.username
-            )
+        text = localization.get(
+            'snowball-throw',
+            tg_username=message.from_user.username,
+            to_tg_username=message.reply_to_message.from_user.username
         )
-        await db_redis.snow_increase(message.from_user.id, to_tg_user_id=message.reply_to_message.from_user.id)
+        message_was_sent = await send_message(message, text)
+        if message_was_sent:
+            await db_redis.snow_increase(message.from_user.id, to_tg_user_id=message.reply_to_message.from_user.id)
+
+
+async def send_message(message: Message, text: str) -> bool:
+    try:
+        await message.answer(text)
+    except TelegramRetryAfter as err:
+        logger.warning(err.message)
+    else:
+        return True
+    return False
