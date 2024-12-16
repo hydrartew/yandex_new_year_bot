@@ -157,18 +157,6 @@ class SnowDuelDBQueries:
                 logger.info(f'tg_user_id:{tg_user_id} is not current user move in the room {self.hash_name}')
                 return MakeMove(is_current_user_move=False)
 
-            # if tg_user_id == room_data.owner.tg_user_id:
-            #     curr_user = room_data.owner
-            # elif tg_user_id == room_data.opponent.tg_user_id:
-            #     curr_user = room_data.opponent
-            # else:
-            #     logger.info(f'tg_user_id:{tg_user_id} not in the room {self.hash_name}')
-            #     return MakeMove(user_in_room=False)
-            #
-            # if not curr_user.is_making_move:
-            #     logger.info(f'tg_user_id:{tg_user_id} is not current user move in the room {self.hash_name}')
-            #     return MakeMove(is_current_user_move=False)
-
             logger.info(f'tg_user_id:{tg_user_id} сan make a move in {self.hash_name}')
 
             return PrepareToMakeMove(snow_duel_data=room_data)
