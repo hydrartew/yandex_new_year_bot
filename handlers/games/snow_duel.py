@@ -124,11 +124,11 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
 
     await call.message.edit_text(hud(snow_duel_data, localization) + footer)
 
-    await asyncio.sleep(2)
+    await asyncio.sleep(3)
 
     snow_duel_data = await snow_duel_db.make_move(snow_duel_data)
 
-    await asyncio.sleep(1)
+    await asyncio.sleep(2)
 
     if snow_duel_data.game_status == 'finished':
         await call.message.edit_text(hud(snow_duel_data, localization, finish_game=True))
