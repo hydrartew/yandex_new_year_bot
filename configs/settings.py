@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     TELEGRAM_CHANNEL_BOT_NEWS_CHAT_ID: int = -1002015280712
     TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK: str = 'https://nda.ya.ru/t/8Ve9IRKc79adW7'
     TELEGRAM_GROUP_FOR_FLOOD_LINK: str = 'https://t.me/+3ZslyN2PNNIzZWEy'
+    TELEGRAM_BOT_CREATOR_ID: int = 861493335
 
     YANDEX_FORM_FEEDBACK_LINK: str = 'https://forms.yandex-team.ru/ext/surveys/13711111/'
     YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION: str = \
