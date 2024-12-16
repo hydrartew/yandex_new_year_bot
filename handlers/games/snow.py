@@ -4,6 +4,7 @@ from aiogram.exceptions import TelegramRetryAfter
 from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram_i18n import I18nContext
+from icecream import ic
 
 from configs import settings
 from db import db_redis
@@ -28,7 +29,8 @@ async def game_snow(message: Message, i18n: I18nContext) -> None:
         return
 
     # если reply на сообщение бота
-    if message.reply_to_message.from_user.is_bot:
+    if (message.reply_to_message.from_user.is_bot or
+            message.reply_to_message.from_user.id == settings.TELEGRAM_BOT_CREATOR_ID):
         await send_message(
             message=message,
             text=localization.get(
