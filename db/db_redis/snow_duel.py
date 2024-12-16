@@ -188,6 +188,15 @@ class SnowDuelDBQueries:
 
         r = await create_redis_client()
         try:
+            # TODO: костыль, переделать
+            room_data_for_check_status = await r.get(self.hash_name)
+            room_data_for_check_status = SnowDuelRoom.model_validate_json(room_data_for_check_status)
+
+            if room_data_for_check_status.game_status != 'in_progress':
+                logger.warning(f'Can not make a move because '
+                               f'the room {self.hash_name} is in status "{room_data.game_status}"')
+                return room_data_for_check_status
+
             if curr_user.points >= self.limit_points_to_win:
                 room_data.game_status = 'finished'
 

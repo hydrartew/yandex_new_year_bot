@@ -141,11 +141,12 @@ async def throw_snowball(call: CallbackQuery, state: FSMContext, i18n: I18nConte
         )
         return
 
-    await asyncio.sleep(3)
+    await asyncio.sleep(5)
 
     snow_duel_data = await snow_duel_db.make_move(snow_duel_data)
 
-    await asyncio.sleep(2)
+    if snow_duel_data.game_status == 'cancelled':
+        return
 
     if snow_duel_data.game_status == 'finished':
         await state.clear()  # для call.from_user.id
