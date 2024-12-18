@@ -10,3 +10,7 @@ services:
         stop_signal: SIGINT
         volumes:
             - .env:/app/.env
+            - logs:/app/logs
+
+volumes:
+    logs:
