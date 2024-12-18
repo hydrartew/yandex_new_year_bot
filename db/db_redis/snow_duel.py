@@ -8,7 +8,7 @@ from db.db_redis.connection import create_redis_client, redis_retry
 from schemas import SnowDuelRoom, SnowDuelUser, MakeMove, AddOpponentToRoom, SnowDuelUserStats, CancelGame, \
     PrepareToMakeMove
 
-logger = logging.getLogger('db.redis')
+logger = logging.getLogger(__name__)
 
 
 class SnowDuelDBQueries:

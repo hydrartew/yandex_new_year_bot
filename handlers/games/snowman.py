@@ -13,7 +13,7 @@ from filters import GroupChat, IsSubscribed
 from handlers import dp
 from localization import Localization
 
-logger = logging.getLogger('handlers')
+logger = logging.getLogger(__name__)
 
 
 @dp.message(Command('snowman'), GroupChat(), IsSubscribed(), flags={"throttling_key": "snowman"})

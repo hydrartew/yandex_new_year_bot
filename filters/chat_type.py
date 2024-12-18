@@ -8,7 +8,7 @@ from aiogram.types import Message
 from db.db_ydb import upsert_chat_data
 from schemas import ChatMemberUpdatedData
 
-logger = logging.getLogger('handlers')
+logger = logging.getLogger(__name__)
 
 
 class PrivateChat(BaseFilter):

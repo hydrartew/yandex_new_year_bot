@@ -1,5 +1,3 @@
-import logging
-
 from aiogram.exceptions import TelegramRetryAfter
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -9,11 +7,12 @@ from icecream import ic
 from configs import settings
 from db import db_redis
 from filters import GroupChat, IsSubscribed
-
 from handlers import dp
 from localization import Localization
 
-logger = logging.getLogger('handlers')
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dp.message(Command('snow'), GroupChat(), IsSubscribed(), flags={"throttling_key": "snow"})
@@ -49,12 +48,12 @@ async def game_snow(message: Message, i18n: I18nContext) -> None:
         )
         return
 
-    logger.info('/snow tg_user_id:{} reply to tg_user_id:{} in chat_id:{}, message_id:{}, reply_to_message:{}'.format(
+    logger.info('/snow tg_user_id:{} reply to tg_user_id:{} in chat_id:{}, reply_to_message:{}, message_id:{}'.format(
         message.from_user.id,
         message.reply_to_message.from_user.id,
         message.chat.id,
-        message.message_id,
-        message.reply_to_message.message_id
+        message.reply_to_message.message_id,
+        message.message_id
     ))
 
     if settings.ConfigSnowSecretBox.is_secret_box():

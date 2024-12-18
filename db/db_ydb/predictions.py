@@ -13,7 +13,7 @@ from configs import settings
 from db.db_ydb.credentials import credentials_manager
 from schemas import RandomPrediction, DataUsedPredictions, DataMaxPredictionId, GetPrediction, PredictionStats
 
-logger = logging.getLogger('db.ydb')
+logger = logging.getLogger(__name__)
 
 full_path: str = '{}/{}/predictions/'.format(settings.YDB_DATABASE.removesuffix('/'), settings.YDB_ROOT_DIR_NAME)
 

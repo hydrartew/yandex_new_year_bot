@@ -6,7 +6,7 @@ from aiogram.dispatcher.flags import get_flag
 from aiogram.types import Message
 from cachetools import TTLCache
 
-logger = logging.getLogger('middleware')
+logger = logging.getLogger(__name__)
 
 
 class ThrottlingMiddleware(BaseMiddleware):

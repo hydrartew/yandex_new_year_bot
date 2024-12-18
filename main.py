@@ -11,15 +11,11 @@ import logging.config
 from loader import bot
 from middlewares import ThrottlingMiddleware
 
-logger = logging.getLogger('handlers')
+logger = logging.getLogger(__name__)
 
-
-def configure_logging():
-    logging.config.fileConfig('logging.ini', disable_existing_loggers=False)
-    logging.getLogger('ydb').setLevel(logging.WARNING)
-
-    for module in ('db.ydb', 'middleware', 'db.redis', 'handlers', 'aiogram.dispatcher'):
-        logging.getLogger(module).propagate = False
+logging.config.fileConfig('logging.ini', disable_existing_loggers=False)
+logging.getLogger('ydb').setLevel(logging.WARNING)
+logging.getLogger('aiogram.dispatcher').propagate = False
 
 
 async def create_ydb_tables_if_not_exists() -> None:
@@ -28,7 +24,6 @@ async def create_ydb_tables_if_not_exists() -> None:
 
 
 async def main() -> None:
-    configure_logging()
     logger.info('Launching the bot')
 
     mw = I18nMiddleware(

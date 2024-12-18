@@ -6,7 +6,7 @@ import redis
 from db.db_redis.connection import create_redis_client, redis_retry
 from schemas import SnowRedisData, SnowmanRedisData, SnowDuelUserStats
 
-logger = logging.getLogger('db.redis')
+logger = logging.getLogger(__name__)
 
 
 @redis_retry()

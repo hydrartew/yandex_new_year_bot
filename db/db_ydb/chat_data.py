@@ -10,7 +10,7 @@ from configs import settings
 from db.db_ydb.credentials import credentials_manager
 from schemas import ChatMemberUpdatedData
 
-logger = logging.getLogger('db.ydb')
+logger = logging.getLogger(__name__)
 
 full_path: str = '{}/{}/chat_data/'.format(settings.YDB_DATABASE.removesuffix('/'), settings.YDB_ROOT_DIR_NAME)
 table_name = 'chats'

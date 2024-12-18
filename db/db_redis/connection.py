@@ -3,7 +3,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_l
 from configs import settings
 import redis.asyncio as aioredis
 
-logger = logging.getLogger('db.redis')
+logger = logging.getLogger(__name__)
 
 
 async def create_redis_client() -> aioredis.StrictRedis:

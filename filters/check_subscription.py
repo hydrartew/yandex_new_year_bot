@@ -11,7 +11,7 @@ from configs import settings
 from keyboards.inline import ikb_subscription
 from localization import Localization
 
-logger = logging.getLogger('handlers')
+logger = logging.getLogger(__name__)
 
 
 class IsSubscribed(BaseFilter):

@@ -21,7 +21,7 @@ from loader import bot
 from localization import Localization
 from schemas import SnowDuelRoom
 
-logger = logging.getLogger('handlers')
+logger = logging.getLogger(__name__)
 
 
 class SnowDuelState(StatesGroup):

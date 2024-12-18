@@ -6,10 +6,7 @@ from configs import settings
 
 import logging.config
 
-logging.config.fileConfig('{}/logging.ini'.format(settings.BASE_DIR))
-logger = logging.getLogger('db.ydb')
-logging.getLogger('db.ydb').propagate = False
-logging.getLogger('ydb').setLevel('WARNING')
+logger = logging.getLogger(__name__)
 
 
 class CredentialsManager:

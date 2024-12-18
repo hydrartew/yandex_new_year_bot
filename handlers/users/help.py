@@ -12,7 +12,7 @@ from keyboards.inline import ikb_welcome_private_chat, ikb_welcome_group_chat
 from loader import dp
 from localization import Localization
 
-logger = logging.getLogger('handlers')
+logger = logging.getLogger(__name__)
 
 flags = {"throttling_key": "help"}
 
