@@ -32,7 +32,7 @@ class SnowDuelDBQueries:
                 tg_user_id=owner_tg_user_id,
                 tg_username=owner_tg_tg_username,
                 hit_chance=settings.ConfigSnowDuel.hit_chance(distance),
-                is_making_move=True if settings.ConfigSnowDuel.who_moves_first().owner else False
+                is_making_move=settings.ConfigSnowDuel.owner_moves_first()
             ),
             distance=distance,
             dttm_created=datetime.now()

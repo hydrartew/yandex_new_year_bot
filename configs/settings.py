@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from schemas import WhoMoves, SettingsConfigSnow, NumberSnowballs, SettingsConfigSnowDuel, Distance, BottomBound, \
+from schemas import SettingsConfigSnow, NumberSnowballs, SettingsConfigSnowDuel, Distance, BottomBound, \
     UpperBound, ChanceFirstMove, UserBuff, Percentage, percentage_to_float, SettingsConfigSnowman
 
 
@@ -141,17 +141,8 @@ class Settings(BaseSettings):
             )[0]
 
         @classmethod
-        def who_moves_first(cls) -> WhoMoves:
-            return random.choices(
-                [
-                    WhoMoves.owner,
-                    WhoMoves.opponent
-                ],
-                [
-                    cls.config.chance_first_move.owner,
-                    cls.config.chance_first_move.opponent
-                ]
-            )[0]
+        def owner_moves_first(cls) -> bool:
+            return cls.config.chance_first_move.owner >= random.random()
 
         @classmethod
         def user_buff(cls, games_played: int) -> float:
