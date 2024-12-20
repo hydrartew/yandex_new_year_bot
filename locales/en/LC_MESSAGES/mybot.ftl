@@ -150,3 +150,5 @@ stats =
 
     🔮 Predictions:
     - received: { $received }
+
+    🆕 Leaderboard: <a href="https://wiki.yandex-team.ru/yandex-new-year-bot/">at the Wiki</a>
