@@ -28,7 +28,7 @@ def snowman_logs(user_id: int):
                 sec = float(f'{time_delta.seconds}.{time_delta.microseconds}')
 
                 str_delay = f'{sec:.2f}'
-                if 0 < previous_delay - sec < 0.1:
+                if abs(previous_delay - sec) < 0.1:
                     str_delay = f'{Bcolors.RED}{sec:.2f}{Bcolors.RESET}'
 
                 print(f'{c}. delay: {str_delay} | {line.strip()}')
