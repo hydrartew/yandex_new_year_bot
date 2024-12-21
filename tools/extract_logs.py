@@ -28,7 +28,7 @@ def snowman_logs(user_id: int):
                 sec = float(f'{time_delta.seconds}.{time_delta.microseconds}')
 
                 str_delay = f'{sec:.2f}'
-                if sec - previous_delay < 0.1:
+                if 0 < previous_delay - sec < 0.1:
                     str_delay = f'{Bcolors.RED}{sec:.2f}{Bcolors.RESET}'
 
                 print(f'{c}. delay: {str_delay} | {line.strip()}')
@@ -37,4 +37,5 @@ def snowman_logs(user_id: int):
                 previous_delay = sec
 
 
-snowman_logs(5625724844)
+telegram_user_id = 0
+snowman_logs(telegram_user_id)
