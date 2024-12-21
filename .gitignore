@@ -7,3 +7,4 @@ __pycache__
 draft.py
 bot.session
 YandexInternalRootCA.crt
+mapping_tg_to_staff.json
