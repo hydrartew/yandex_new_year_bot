@@ -33,6 +33,8 @@ help-text = { $message_text ->
        *[other] {""}
     }
 
+night-king-already-given = You have already received a secret achievement
+
 night-king-unavailable = The conditions for obtaining a secret achievement are not met, try again later
 
 night-king-unblocked = 

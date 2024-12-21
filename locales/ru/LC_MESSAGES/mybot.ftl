@@ -33,6 +33,8 @@ help-text = { $message_text ->
        *[other] {""}
     }
 
+night-king-already-given = Ты уже получил(а) секретную ачивку
+
 night-king-unavailable = Условия для получения секретной ачивки не выполнены, попробуй позже
 
 night-king-unblocked = 
