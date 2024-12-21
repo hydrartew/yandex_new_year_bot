@@ -93,6 +93,7 @@ class Achievement:
         before_sleep=before_sleep_log(logger, logging.INFO)
     )
     def give(self) -> ResponseGiveAchievement:
+        return ResponseGiveAchievement(error_occurred=True)  # костыль hot fix для правок бизнес логики выдачи ачивки
         staff_login = self._staff_login
         if staff_login is None:
             logger.warning('tg_username:{} has no staff'.format(self.tg_username))
