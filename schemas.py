@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Literal, Annotated
 
 from aiogram.enums import ChatMemberStatus
-from pydantic import BaseModel, field_validator, computed_field, AfterValidator
+from pydantic import BaseModel, field_validator, computed_field, AfterValidator, ConfigDict, Field
 
 
 def percentage_to_float(v: str | float) -> float:
@@ -229,3 +229,19 @@ class SettingsConfigSnowDuel(BaseModel):
 class SettingsConfigSnowman(BaseModel):
     height_increased: int
     percentage_falling_chance: Percentage
+
+
+class GiveAchievement(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    achievement_id: int = Field(..., alias='achievement.id')
+    staff_login: str = Field(..., alias='person.login')
+    level: int = -1
+    is_active: bool = True
+
+
+class ResponseGiveAchievement(BaseModel):
+    given_successfully: bool = False
+    already_given: bool = False
+    error_occurred: bool = False
+    invalid_tg_username: bool = False

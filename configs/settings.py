@@ -13,6 +13,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=f'{BASE_DIR}/.env', env_file_encoding='utf-8')
 
+    TRACKER_BOT_INTERNAL_TOKEN: SecretStr
+
     TELEGRAM_BOT_TOKEN: SecretStr
     TELEGRAM_BOT_LOGIN: str = 'yandex_new_year_bot'
 
@@ -48,6 +50,8 @@ class Settings(BaseSettings):
     CHAT_IDS_BLACK_LIST: list[int] | None = None
 
     path_ssl_ca_certs: str = f'{BASE_DIR}/configs/.redis/YandexInternalRootCA.crt'
+
+    static_json_path: str = f'{BASE_DIR}/static/json/'
 
     @computed_field
     @property
