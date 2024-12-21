@@ -9,6 +9,7 @@ class Bcolors:
     RED = '\033[91m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
+    GRAY = '\033[90m'
     RESET = '\033[0m'
 
 
@@ -18,8 +19,7 @@ def snowman_logs(user_id: int):
     with (open(log_file_path, 'r+') as log_file):
         c = 0
         for line in log_file:
-            if (f'tg_user_id:{user_id}' in line and 'snowman' in line and
-                    'updates the snowman with height_increased: -1' not in line):
+            if f'tg_user_id:{user_id}' in line and 'snowman' in line:
                 c += 1
 
                 timestamp_str = line.split()[0] + " " + line.split()[1]
@@ -34,6 +34,10 @@ def snowman_logs(user_id: int):
                     str_delay = f'{Bcolors.YELLOW}{sec:.2f}{Bcolors.RESET}'
                 else:
                     str_delay = f'{sec:.2f}'
+
+                if 'updates the snowman with height_increased: -1' in line:
+                    print(f'{Bcolors.GRAY}{c}. delay: {sec:.2f} | {line.strip()}{Bcolors.RESET}')
+                    continue
 
                 print(f'{c}. delay: {str_delay} | {line.strip()}')
 
