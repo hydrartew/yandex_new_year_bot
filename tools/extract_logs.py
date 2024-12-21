@@ -15,10 +15,11 @@ class Bcolors:
 def snowman_logs(user_id: int):
     previous_time = datetime.now()
     previous_delay = 0
-    with open(log_file_path, 'r+') as log_file:
+    with (open(log_file_path, 'r+') as log_file):
         c = 0
         for line in log_file:
-            if f'tg_user_id:{user_id}' in line and 'snowman' in line:
+            if (f'tg_user_id:{user_id}' in line and 'snowman' in line and
+                    'updates the snowman with height_increased: -1' not in line):
                 c += 1
 
                 timestamp_str = line.split()[0] + " " + line.split()[1]
@@ -27,9 +28,12 @@ def snowman_logs(user_id: int):
                 time_delta = timestamp - previous_time
                 sec = float(f'{time_delta.seconds}.{time_delta.microseconds}')
 
-                str_delay = f'{sec:.2f}'
                 if abs(previous_delay - sec) < 0.1:
                     str_delay = f'{Bcolors.RED}{sec:.2f}{Bcolors.RESET}'
+                elif 0.1 < abs(previous_delay - sec) < 0.2:
+                    str_delay = f'{Bcolors.YELLOW}{sec:.2f}{Bcolors.RESET}'
+                else:
+                    str_delay = f'{sec:.2f}'
 
                 print(f'{c}. delay: {str_delay} | {line.strip()}')
 
