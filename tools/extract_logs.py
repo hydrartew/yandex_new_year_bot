@@ -60,8 +60,9 @@ def snowman_logs(user_id: int):
                 previous_time = timestamp
                 previous_delay = sec
 
+        data['total'] = c
         print('\n', data)
 
 
-telegram_user_id = 0
+telegram_user_id = 1958578155
 snowman_logs(telegram_user_id)
