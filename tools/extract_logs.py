@@ -29,8 +29,6 @@ def snowman_logs(user_id: int):
 
         for line in log_file:
             if f'tg_user_id:{user_id}' in line and 'snowman' in line:
-                c += 1
-
                 timestamp_str = line.split()[0] + " " + line.split()[1]
                 timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S,%f")
 
@@ -56,6 +54,8 @@ def snowman_logs(user_id: int):
                     print(f'{Bcolors.GRAY}{c}. delay: {sec:.2f} | {line.strip()}{Bcolors.RESET}')
                     continue
 
+                c += 1
+
                 print(f'{c}. delay: {str_delay} | {line.strip()}')
 
                 previous_time = timestamp
@@ -65,5 +65,5 @@ def snowman_logs(user_id: int):
         print(f'\n{json.dumps(data, indent=2)}')
 
 
-telegram_user_id = 0
+telegram_user_id = 425803193
 snowman_logs(telegram_user_id)
