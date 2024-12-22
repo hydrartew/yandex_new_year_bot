@@ -240,8 +240,6 @@ class GiveAchievement(BaseModel):
     is_active: bool = True
 
 
-class ResponseGiveAchievement(BaseModel):
-    given_successfully: bool = False
-    already_given: bool = False
-    error_occurred: bool = False
-    invalid_tg_username: bool = False
+class NightKingFlag(BaseModel):
+    already_exists: bool = False
+    added: bool = False

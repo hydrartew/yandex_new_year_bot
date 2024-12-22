@@ -33,14 +33,11 @@ help-text = { $message_text ->
        *[other] {""}
     }
 
-night-king-already-given = You have already received a secret achievement
+night-king-already-given = You've already unblocked a secret achievement, it will be displayed (or has already been displayed) on Staff within 24 hours after unblocking
 
 night-king-unavailable = The conditions for obtaining a secret achievement are not met, try again later
 
-night-king-unblocked = 
-    Night King 👑 unlocked!
-
-    The achievement will appear on Staff within a few minutes (in rare cases - within an hour)
+night-king-unblocked = Night King 👑 unlocked! The achievement will be issued and displayed on Staff within 24 hours
 
 prediction-error-occurred = An error occurred while retrieving the prediction 😳. Try again later
 
