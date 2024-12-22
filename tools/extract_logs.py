@@ -18,6 +18,14 @@ def snowman_logs(user_id: int):
     previous_delay = 0
     with (open(log_file_path, 'r+') as log_file):
         c = 0
+
+        data = {
+            'blocked_count': 0,
+            'white_action': 0,
+            'red_action': 0,
+            'yellow_action': 0
+        }
+
         for line in log_file:
             if f'tg_user_id:{user_id}' in line and 'snowman' in line:
                 c += 1
@@ -30,10 +38,18 @@ def snowman_logs(user_id: int):
 
                 if abs(previous_delay - sec) < 0.1:
                     str_delay = f'{Bcolors.RED}{sec:.2f}{Bcolors.RESET}'
+                    data['red_action'] += 1
+
                 elif 0.1 < abs(previous_delay - sec) < 0.2:
                     str_delay = f'{Bcolors.YELLOW}{sec:.2f}{Bcolors.RESET}'
+                    data['yellow_action'] += 1
+
                 else:
                     str_delay = f'{sec:.2f}'
+                    data['white_action'] += 1
+
+                if 'blocked' in line:
+                    data['blocked_count'] += 1
 
                 if 'updates the snowman with height_increased: -1' in line:
                     print(f'{Bcolors.GRAY}{c}. delay: {sec:.2f} | {line.strip()}{Bcolors.RESET}')
@@ -43,6 +59,8 @@ def snowman_logs(user_id: int):
 
                 previous_time = timestamp
                 previous_delay = sec
+
+        print('\n', data)
 
 
 telegram_user_id = 0
