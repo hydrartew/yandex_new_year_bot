@@ -1,9 +1,8 @@
-import json
 from datetime import datetime
 
 from configs import settings
 
-log_file_path = settings.BASE_DIR + '/logs/18_12-21_12.log'
+log_file_path = settings.BASE_DIR + '/logs/18.12-22.12.log'
 
 
 class Bcolors:
