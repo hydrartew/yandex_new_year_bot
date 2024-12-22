@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from configs import settings
@@ -61,8 +62,8 @@ def snowman_logs(user_id: int):
                 previous_delay = sec
 
         data['total'] = c
-        print('\n', data)
+        print(f'\n{json.dumps(data, indent=2)}')
 
 
-telegram_user_id = 1958578155
+telegram_user_id = 0
 snowman_logs(telegram_user_id)
