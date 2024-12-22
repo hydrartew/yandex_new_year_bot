@@ -35,7 +35,11 @@ def snowman_logs(user_id: int):
                 time_delta = timestamp - previous_time
                 sec = float(f'{time_delta.seconds}.{time_delta.microseconds}')
 
-                if abs(previous_delay - sec) < 0.1:
+                if 'updates the snowman with height_increased: -1' in line:
+                    print(f'{Bcolors.GRAY}{c}. delay: {sec:.2f} | {line.strip()}{Bcolors.RESET}')
+                    continue
+
+                if abs(previous_delay - sec) <= 0.1:
                     str_delay = f'{Bcolors.RED}{sec:.2f}{Bcolors.RESET}'
                     data['red_action'] += 1
 
@@ -50,10 +54,6 @@ def snowman_logs(user_id: int):
                 if 'blocked' in line:
                     data['blocked_count'] += 1
 
-                if 'updates the snowman with height_increased: -1' in line:
-                    print(f'{Bcolors.GRAY}{c}. delay: {sec:.2f} | {line.strip()}{Bcolors.RESET}')
-                    continue
-
                 c += 1
 
                 print(f'{c}. delay: {str_delay} | {line.strip()}')
@@ -62,8 +62,18 @@ def snowman_logs(user_id: int):
                 previous_delay = sec
 
         data['total'] = c
-        print(f'\n{json.dumps(data, indent=2)}')
+
+        for i in ('white_action', 'red_action', 'yellow_action'):
+            data[i] = [data[i], f'{(data[i] / data['total']):.0%}']
+
+        print(
+            f'\nTotal actions: {data["total"]}',
+            f'\nBlocked actions: {data["blocked_count"]}',
+            f'\nWhite actions: {data["white_action"][0]} ({data["white_action"][1]})',
+            f'\nRed actions: {data["red_action"][0]} ({data["red_action"][1]})',
+            f'\nYellow actions: {data["yellow_action"][0]} ({data["yellow_action"][1]})'
+        )
 
 
-telegram_user_id = 425803193
+telegram_user_id = 0
 snowman_logs(telegram_user_id)
