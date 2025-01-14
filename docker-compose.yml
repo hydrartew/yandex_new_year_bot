@@ -11,8 +11,6 @@ services:
         volumes:
             - .env:/app/.env
             - logs:/app/logs
-            - static_json:/app/static/json
 
 volumes:
     logs:
-    static_json:
