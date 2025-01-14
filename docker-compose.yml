@@ -5,7 +5,7 @@ services:
         env_file:
             - .env
         container_name: yandex-new-year-bot
-        image: amayammi/yandex-new-year-bot:latest
+        image: app/yandex-new-year-bot:latest
         restart: "always"
         stop_signal: SIGINT
         volumes:
