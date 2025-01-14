@@ -29,6 +29,9 @@ class IsSubscribed(BaseFilter):
             if message.chat.id in settings.CHAT_IDS_BLACK_LIST:
                 return False
 
+        if settings.TELEGRAM_CHANNEL_BOT_NEWS_CHAT_ID is None:
+            return True
+
         sub = await bot.get_chat_member(
             chat_id=settings.TELEGRAM_CHANNEL_BOT_NEWS_CHAT_ID,
             user_id=message.from_user.id

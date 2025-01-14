@@ -13,29 +13,23 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=f'{BASE_DIR}/.env', env_file_encoding='utf-8')
 
-    TRACKER_BOT_INTERNAL_TOKEN: SecretStr
-
     TELEGRAM_BOT_TOKEN: SecretStr
-    TELEGRAM_BOT_LOGIN: str = 'yandex_new_year_bot'
+    TELEGRAM_BOT_LOGIN: str = 'bot_name'
 
-    TELEGRAM_API_ID: int
-    TELEGRAM_API_HASH: str
+    TELEGRAM_API_ID: int | None = None
+    TELEGRAM_API_HASH: str | None = None
 
-    TELEGRAM_CHANNEL_BOT_NEWS_NAME: str = 'YNYB News'
-    TELEGRAM_CHANNEL_BOT_NEWS_CHAT_ID: int = -1002015280712
-    TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK: str = 'https://nda.ya.ru/t/8Ve9IRKc79adW7'
-    TELEGRAM_GROUP_FOR_FLOOD_LINK: str = 'https://t.me/+3ZslyN2PNNIzZWEy'
-    TELEGRAM_BOT_CREATOR_ID: int = 861493335
+    TELEGRAM_CHANNEL_BOT_NEWS_NAME: str = 'Bot News'
+    TELEGRAM_CHANNEL_BOT_NEWS_CHAT_ID: int | None = None
+    TELEGRAM_CHANNEL_BOT_NEWS_INVITE_LINK: str = 'https://t.me/'
+    TELEGRAM_BOT_CREATOR_ID: int = 0
 
-    YANDEX_FORM_FEEDBACK_LINK: str = 'https://forms.yandex-team.ru/ext/surveys/13711111/'
-    YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION: str = \
-        'https://forms.yandex-team.ru/ext/surveys/13711111?topic_1=prediction'
-
-    WIKI_BOT_PAGE_LINK: str = 'https://wiki.yandex-team.ru/'
+    YANDEX_FORM_FEEDBACK_LINK: str = 'https://forms.yandex.ru/'
+    YANDEX_FORM_FEEDBACK_LINK_WITH_PRE_COMPLETION: str = 'https://forms.yandex.ru/'
 
     YDB_DATABASE: str
     YDB_ENDPOINT: str
-    YDB_ROOT_DIR_NAME: str = 'ynyb'
+    YDB_ROOT_DIR_NAME: str = 'main'
 
     TEST_ENVIRONMENT: bool = False
 

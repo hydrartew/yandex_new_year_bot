@@ -10,6 +10,9 @@ from configs import settings
 api_id = settings.TELEGRAM_API_ID
 api_hash = settings.TELEGRAM_API_HASH
 
+if api_id is None or api_hash is None:
+    raise ValueError('Telegram API_ID and API_HASH are required')
+
 bot = TelegramClient('bot', api_id, api_hash).start(bot_token=settings.TELEGRAM_BOT_TOKEN.get_secret_value())
 
 
