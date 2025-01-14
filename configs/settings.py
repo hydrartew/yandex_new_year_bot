@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     YDB_ENDPOINT: str
     YDB_ROOT_DIR_NAME: str = 'main'
 
-    TEST_ENVIRONMENT: bool = False
+    BOT_HOST_FOR_YDB_IN_YANDEX_CLOUD: bool = False
 
     REDIS_HOST: str
     REDIS_PASSWORD: SecretStr

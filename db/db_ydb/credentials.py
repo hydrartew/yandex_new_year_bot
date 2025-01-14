@@ -16,7 +16,7 @@ class CredentialsManager:
         self.file_path = '{}/configs/authorized_key.json'.format(settings.BASE_DIR)
 
     def get_credentials(self):
-        if settings.TEST_ENVIRONMENT:
+        if not settings.BOT_HOST_FOR_YDB_IN_YANDEX_CLOUD:
             if self.token is None or self.is_token_expired:
                 self.refresh_token()
             return ydb.credentials.AccessTokenCredentials(token=self.token)
