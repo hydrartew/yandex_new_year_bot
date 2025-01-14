@@ -1,20 +1,15 @@
 # Rename this file to .env
-# Commented options are optional, feel free to
-# uncomment them if needed
 
 # Get your bot token from https://t.me/botfather
-TELEGRAM_BOT_TOKEN=123456789:abcdefghijklmnopqrstuvwxyz
+TELEGRAM_BOT_TOKEN=
 
 # YDB database path (https://ydb.tech/docs/ru/concepts/connect#database)
-YDB_DATABASE=/ru-central1/b1g8skpblkos03malf3s/etn01q5ko6sh271beftr
+YDB_DATABASE=
 
 # YDB database endpoint (https://ydb.tech/docs/ru/concepts/connect#endpoint)
-YDB_ENDPOINT=grpcs://ydb.serverless.yandexcloud.net:1234
+YDB_ENDPOINT=
 
-# TEST_ENVIRONMENT=TRUE
-
-# https://yandex.cloud/ru/docs/managed-redis/
-REDIS_HOST=c-<идентификатор_кластера>.rw.mdb.yandexcloud.net
-
-REDIS_PASSWORD=12345
-REDIS_PORT=1234
+# https://yandex.cloud/ru/docs/managed-redis/operations/connect/non-sharded#python
+REDIS_HOST=
+REDIS_PASSWORD=
+REDIS_PORT=
