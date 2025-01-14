@@ -13,3 +13,6 @@ YDB_ENDPOINT=
 REDIS_HOST=
 REDIS_PASSWORD=
 REDIS_PORT=
+
+# True if the app is hosted on Yandex Cloud else False
+BOT_HOST_FOR_YDB_IN_YANDEX_CLOUD=FALSE

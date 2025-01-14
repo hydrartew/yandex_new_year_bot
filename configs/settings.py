@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     YDB_ENDPOINT: str
     YDB_ROOT_DIR_NAME: str = 'main'
 
+    # True if the app is hosted on Yandex Cloud else False
     BOT_HOST_FOR_YDB_IN_YANDEX_CLOUD: bool = False
 
     REDIS_HOST: str
