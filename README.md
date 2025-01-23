@@ -35,7 +35,7 @@ New Year's Bot Moroz is a multilingual bot with simple games right inside Telegr
 
 And also used:
 * [Yandex Forms](https://yandex.ru/support/forms/ru/create-task) — to add a complaints, feedback and new prediction for the [game of the same name](handlers/games/prediction.py) (using integration with **Yandex Tracker**)
-* [Yandex Tracker](https://yandex.cloud/ru/docs/tracker/) — processing issues and predictions created from the **Yandex Form**
+* [Yandex Tracker](https://yandex.cloud/ru/docs/tracker/) + API — processing issues and predictions created from the **Yandex Form**
 * [Cloud Functions](https://yandex.cloud/ru/docs/functions/lang/python/) — running the script (cron-task) [**hydrartew/yc_functions_predictions**](https://github.com/hydrartew/yc_functions_predictions) for add processed predictions from **Yandex Tracker** to database **YDB**
 * [Yandex Wiki](https://yandex.cloud/en/docs/wiki/create-grid) dynamic tables + API — to display leaderboards for games
 * [Yandex Compute Cloud](https://yandex.cloud/ru/docs/compute/) (ВМ Linux) — for hosting a bot
