@@ -30,12 +30,12 @@ New Year's Bot Moroz is a multilingual bot with simple games right inside Telegr
 * [Docker](https://www.docker.com) and [Docker-Compose](https://docs.docker.com/compose) — quickly deploy bot in containers
 * [Fluent](https://projectfluent.org/python-fluent/) — multilingualism depending on the user's chosen language in telegram (supported by RU and ENG)
 * [Pydantic](https://docs.pydantic.dev/latest/) — abandoning the use of dictionaries in favor of validation
-* [Yandex Cloud. Valkey™ (Redis)](https://yandex.cloud/ru/services/managed-redis) — persistent data storage
+* [Redis](https://yandex.cloud/ru/services/managed-redis) — persistent data storage
 * [YDB](https://github.com/ydb-platform/ydb) and [ydb-python-sdk](https://github.com/ydb-platform/ydb-python-sdk) — for storing data about telegram groups and users
 
 And also used:
 * [Yandex Forms](https://yandex.ru/support/forms/ru/create-task) — to add a complaints, feedback and new prediction for the [game of the same name](handlers/games/prediction.py) (using integration with **Yandex Tracker**)
-* [Yandex Tracker](https://yandex.cloud/ru/docs/tracker/) + API — processing issues and predictions created from the **Yandex Form**
+* [Yandex Tracker](https://yandex.cloud/ru/docs/tracker/) + [yandex_tracker_client](https://github.com/yandex/yandex_tracker_client) — processing issues and predictions created from the **Yandex Form**
 * [Cloud Functions](https://yandex.cloud/ru/docs/functions/lang/python/) — running the script (cron-task) [**hydrartew/yc_functions_predictions**](https://github.com/hydrartew/yc_functions_predictions) for add processed predictions from **Yandex Tracker** to database **YDB**
 * [Yandex Wiki](https://yandex.cloud/en/docs/wiki/create-grid) dynamic tables + API — to display leaderboards for games
 * [Yandex Compute Cloud](https://yandex.cloud/ru/docs/compute/) (ВМ Linux) — for hosting a bot
