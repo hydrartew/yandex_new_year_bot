@@ -4,6 +4,25 @@
 
 New Year's Bot Moroz is a multilingual bot with simple games right inside Telegram
 
+# Usage Display
+
+<details>
+    <summary>/prediction and /stats</summary>
+    <img src="DOCS/prediction_1.gif" height="350" alt="/prediction"/> <img src="DOCS/prediction_2.gif" height="350" alt="prediction_2"/>
+</details>
+<details>
+    <summary>/snow_duel</summary>
+    <img src="DOCS/snow_duel_1.gif" height="350" alt="/snow_duel"/> <img src="DOCS/snow_duel_2.gif" height="350" alt="snow_duel_2"/>
+</details>
+<details>
+    <summary>/snowman</summary>
+    <img src="DOCS/snowman.gif" height="350" alt="/snowman"/>
+</details>
+<details>
+    <summary>/snow</summary>
+    <img src="DOCS/snow.gif" height="350" alt="/snow"/>
+</details>
+
 ## Technology
 
 * [aiogram](https://github.com/aiogram/aiogram) — asyncio Telegram Bot API framework
@@ -19,7 +38,7 @@ And also used:
 * [Yandex Tracker](https://yandex.cloud/ru/docs/tracker/) — processing issues and predictions created from the **Yandex Form**
 * [Cloud Functions](https://yandex.cloud/ru/docs/functions/lang/python/) — running the script (cron-task) [**hydrartew/yc_functions_predictions**](https://github.com/hydrartew/yc_functions_predictions) for add processed predictions from **Yandex Tracker** to database **YDB**
 * [Yandex Wiki](https://yandex.cloud/en/docs/wiki/create-grid) dynamic tables + API — to display leaderboards for games
-* [Yandex Compute Cloud](https://yandex.cloud/ru/docs/compute/) — for hosting a bot
+* [Yandex Compute Cloud](https://yandex.cloud/ru/docs/compute/) (ВМ Linux) — for hosting a bot
 * [Cloud Logging](https://yandex.cloud/ru/docs/logging/tutorials/vm-fluent-bit-logging) — transfer logs from a VM instance
 
 ## Installation and launch
