@@ -2,7 +2,7 @@
 
 # About
 
-New Year's Bot Moroz is a multilingual bot with simple games right inside Telegram
+Moroz New Year's bot is a multilingual bot with simple games right inside Telegram for a New Year's event inside Yandex for support staff
 
 # Usage Display
 
